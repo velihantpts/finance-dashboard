@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Dark Theme (default) ─────────── */
+:root {
+  --bg-primary: #0a0b0f;
+  --bg-secondary: #12131a;
+  --bg-tertiary: #1a1b25;
+  --border: #1e2030;
+  --text-primary: #e8e9ed;
+  --text-secondary: #a0a3b1;
+  --text-muted: #5c5f73;
+  --accent: #6366f1;
+  --accent-cyan: #22d3ee;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-glow: rgba(99, 102, 241, 0.15);
+}
+
+/* ── Light Theme ──────────────────── */
+html.light {
+  --bg-primary: #f4f5fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #ecedf5;
+  --border: #dfe1ee;
+  --text-primary: #0d0e14;
+  --text-secondary: #3a3e55;
+  --text-muted: #7880a2;
+  --accent-glow: rgba(99, 102, 241, 0.08);
+}
+
+html.light .card:hover {
+  border-color: #c8cbe0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Card Base ────────────────────── */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  border-color: #2a2d42;
+}
+
+/* ── Scrollbar ────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ── Recharts overrides ───────────── */
+.recharts-default-tooltip {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+}
+
+/* ── Selection ────────────────────── */
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+/* ── Focus visible ────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Sidebar & main transitions ───── */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-transition {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
