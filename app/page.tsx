@@ -11,19 +11,19 @@ import TransactionTable from '@/components/tables/TransactionTable';
 export default function Dashboard() {
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-6">
+      <div className="p-8 space-y-8">
         <KpiGrid />
 
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2">
             <RevenueChart />
           </div>
           <PortfolioChart />
         </div>
 
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-3 gap-6">
           <RiskAssessment />
-          <div className="space-y-5">
+          <div className="space-y-6">
             <WeeklyVolume />
             <QuickStats />
           </div>

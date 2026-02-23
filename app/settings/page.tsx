@@ -5,6 +5,9 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import ProfileModal from '@/components/ui/ProfileModal';
 import { Settings, Bell, Shield, Palette, Globe, Key, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
   const { trans, lang } = useLanguage();
@@ -92,48 +95,53 @@ export default function SettingsPage() {
   return (
     <>
       <DashboardLayout>
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-8">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-              <Settings size={20} className="text-indigo-400" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Settings size={20} className="text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">{trans.pages.settings.title}</h1>
-              <p className="text-xs text-[var(--text-secondary)] mt-0.5">{trans.pages.settings.subtitle}</p>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">{trans.pages.settings.title}</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">{trans.pages.settings.subtitle}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-7">
             {/* Profile Card */}
             <div className="col-span-1 space-y-5">
               <div className="card">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-5">{trans.pages.settings.profile}</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-5">{trans.pages.settings.profile}</h3>
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold mb-3">
                     VT
                   </div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Velihan T.</p>
-                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  <p className="text-sm font-semibold text-foreground">Velihan T.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {lang === 'tr' ? 'Yönetici' : 'Administrator'}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5">velihan@financehub.io</p>
-                  <button
+                  <p className="text-xs text-muted-foreground mt-0.5">velihan@financehub.io</p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-4 w-full h-8 text-xs text-primary"
                     onClick={() => setProfileOpen(true)}
-                    className="mt-4 h-8 px-4 rounded-lg bg-indigo-500/10 text-xs text-indigo-400 font-medium hover:bg-indigo-500/20 transition-colors w-full"
                   >
                     {trans.profile.editProfile}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <div className="card">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">{trans.pages.settings.accountDetails}</h3>
-                <div className="space-y-3">
-                  {accountDetails.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-[var(--border)] last:border-0">
-                      <span className="text-xs text-[var(--text-muted)]">{item.label}</span>
-                      <span className="text-xs font-medium text-[var(--text-primary)]">{item.value}</span>
+                <h3 className="text-sm font-semibold text-foreground mb-4">{trans.pages.settings.accountDetails}</h3>
+                <div className="space-y-0">
+                  {accountDetails.map((item, i) => (
+                    <div key={item.label}>
+                      <div className="flex items-center justify-between py-2.5">
+                        <span className="text-xs text-muted-foreground">{item.label}</span>
+                        <span className="text-xs font-medium text-foreground">{item.value}</span>
+                      </div>
+                      {i < accountDetails.length - 1 && <Separator />}
                     </div>
                   ))}
                 </div>
@@ -143,49 +151,40 @@ export default function SettingsPage() {
             {/* Settings Sections */}
             <div className="col-span-2 space-y-4">
               <div className="card">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-5">{trans.pages.settings.preferences}</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-5">{trans.pages.settings.preferences}</h3>
                 <div className="space-y-0">
                   {settingSections.map((section, i) => (
-                    <button
+                    <Button
                       key={i}
-                      className="w-full flex items-center gap-4 py-4 border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] -mx-6 px-6 transition-colors"
+                      variant="ghost"
+                      className="w-full flex items-center gap-4 py-4 h-auto -mx-2 px-2 justify-start border-b border-border last:border-0 rounded-none"
                     >
                       <div className={`w-9 h-9 rounded-xl ${section.bg} flex items-center justify-center shrink-0`}>
                         <section.icon size={16} className={section.color} />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="text-sm font-medium text-[var(--text-primary)]">{section.label}</p>
-                        <p className="text-xs text-[var(--text-muted)] mt-0.5">{section.description}</p>
+                        <p className="text-sm font-medium text-foreground">{section.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 font-normal">{section.description}</p>
                       </div>
-                      <ChevronRight size={16} className="text-[var(--text-muted)] shrink-0" />
-                    </button>
+                      <ChevronRight size={16} className="text-muted-foreground shrink-0" />
+                    </Button>
                   ))}
                 </div>
               </div>
 
               <div className="card">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-5">{trans.pages.settings.quickToggles}</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-5">{trans.pages.settings.quickToggles}</h3>
                 <div className="space-y-4">
                   {quickToggles.map((toggle, i) => (
                     <div key={i} className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium text-[var(--text-primary)]">{toggle.label}</p>
-                        <p className="text-xs text-[var(--text-muted)] mt-0.5">{toggle.sub}</p>
+                        <p className="text-xs font-medium text-foreground">{toggle.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{toggle.sub}</p>
                       </div>
-                      <button
-                        onClick={() => handleToggle(i)}
-                        className={`w-10 h-5 rounded-full relative transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
-                          toggles[i] ? 'bg-indigo-500' : 'bg-[var(--bg-tertiary)]'
-                        }`}
-                        role="switch"
-                        aria-checked={toggles[i]}
-                      >
-                        <span
-                          className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${
-                            toggles[i] ? 'left-[22px]' : 'left-0.5'
-                          }`}
-                        />
-                      </button>
+                      <Switch
+                        checked={toggles[i]}
+                        onCheckedChange={() => handleToggle(i)}
+                      />
                     </div>
                   ))}
                 </div>

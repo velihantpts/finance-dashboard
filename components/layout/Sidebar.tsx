@@ -16,9 +16,16 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { useSidebar } from '@/providers/SidebarProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import LogoutModal from '@/components/ui/LogoutModal';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface NavItem {
   icon: ComponentType<{ size?: number; className?: string }>;
@@ -40,21 +47,26 @@ export default function Sidebar() {
   const { collapsed, toggle } = useSidebar();
   const { trans, lang } = useLanguage();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const { data: session } = useSession();
+
+  const userName = session?.user?.name ?? 'Loading...';
+  const userInitials = userName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+  const userRole = (session?.user as { role?: string })?.role ?? '';
 
   const handleLogout = () => {
     setLogoutOpen(false);
-    window.location.href = '/';
+    signOut({ callbackUrl: '/login' });
   };
 
   return (
     <>
       <aside
-        className="sidebar-transition fixed left-0 top-0 h-screen bg-[var(--bg-primary)] border-r border-[var(--border)] flex flex-col z-50 overflow-hidden"
+        className="sidebar-transition fixed left-0 top-0 h-screen bg-background border-r border-border flex flex-col z-50 overflow-hidden"
         style={{ width: collapsed ? 64 : 240 }}
       >
         {/* Logo */}
         <div
-          className="h-16 flex items-center border-b border-[var(--border)] shrink-0"
+          className="h-16 flex items-center border-b border-border shrink-0"
           style={{
             padding: collapsed ? '0 16px' : '0 24px',
             justifyContent: collapsed ? 'center' : 'flex-start',
@@ -68,10 +80,10 @@ export default function Sidebar() {
             className="overflow-hidden transition-all duration-300"
             style={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
           >
-            <span className="text-sm font-bold text-[var(--text-primary)] tracking-tight whitespace-nowrap">
+            <span className="text-sm font-bold text-foreground tracking-tight whitespace-nowrap">
               {trans.app.name}
             </span>
-            <span className="text-[10px] text-[var(--text-muted)] block -mt-0.5 whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground block -mt-0.5 whitespace-nowrap">
               {trans.app.subtitle}
             </span>
           </div>
@@ -85,37 +97,40 @@ export default function Sidebar() {
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const label = trans.nav[item.labelKey];
-            return (
-              <div key={item.href} className="relative group">
-                <Link
-                  href={item.href}
-                  title={collapsed ? label : undefined}
-                  className={`flex items-center rounded-xl text-sm transition-all duration-200 ${
-                    isActive
-                      ? 'bg-indigo-500/10 text-indigo-400 font-medium'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'
-                  }`}
-                  style={{
-                    padding: collapsed ? '10px 0' : '10px 12px',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    gap: collapsed ? 0 : 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
+            const linkEl = (
+              <Link
+                href={item.href}
+                className={`flex items-center rounded-xl text-sm transition-all duration-200 ${
+                  isActive
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+                style={{
+                  padding: collapsed ? '10px 0' : '10px 12px',
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                  gap: collapsed ? 0 : 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <item.icon size={18} className="shrink-0" />
+                <span
+                  className="overflow-hidden whitespace-nowrap transition-all duration-300"
+                  style={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
                 >
-                  <item.icon size={18} className="shrink-0" />
-                  <span
-                    className="overflow-hidden whitespace-nowrap transition-all duration-300"
-                    style={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
-                  >
-                    {label}
-                  </span>
-                </Link>
-                {collapsed && (
-                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg text-xs text-[var(--text-primary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[60] shadow-lg">
-                    {label}
-                  </div>
-                )}
+                  {label}
+                </span>
+              </Link>
+            );
+
+            return (
+              <div key={item.href} className="relative">
+                {collapsed ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+                    <TooltipContent side="right">{label}</TooltipContent>
+                  </Tooltip>
+                ) : linkEl}
               </div>
             );
           })}
@@ -123,9 +138,10 @@ export default function Sidebar() {
 
         {/* Collapse Toggle */}
         <div style={{ padding: collapsed ? '0 8px 8px' : '0 12px 8px' }}>
-          <button
+          <Button
+            variant="ghost"
             onClick={toggle}
-            className="w-full flex items-center gap-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition-all duration-200 text-xs"
+            className="w-full gap-2 text-xs text-muted-foreground justify-center"
             style={{
               padding: collapsed ? '8px 0' : '8px 12px',
               justifyContent: collapsed ? 'center' : 'flex-start',
@@ -142,16 +158,16 @@ export default function Sidebar() {
                 <span>{lang === 'tr' ? 'Küçült' : 'Collapse'}</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* User Card */}
         <div
-          className="border-t border-[var(--border)]"
+          className="border-t border-border"
           style={{ padding: collapsed ? '12px 8px' : '12px 12px' }}
         >
           <div
-            className="flex items-center rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+            className="flex items-center rounded-xl bg-secondary hover:bg-accent transition-colors"
             style={{
               padding: collapsed ? '8px 0' : '8px 12px',
               justifyContent: collapsed ? 'center' : 'flex-start',
@@ -159,33 +175,39 @@ export default function Sidebar() {
             }}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-              VT
+              {userInitials || 'VT'}
             </div>
             <div
               className="flex-1 min-w-0 overflow-hidden transition-all duration-300"
               style={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
             >
-              <p className="text-xs font-medium text-[var(--text-primary)] truncate">Velihan T.</p>
-              <p className="text-[10px] text-[var(--text-muted)]">{lang === 'tr' ? 'Yönetici' : 'Admin'}</p>
+              <p className="text-xs font-medium text-foreground truncate">{userName}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {userRole || (lang === 'tr' ? 'Yönetici' : 'Admin')}
+              </p>
             </div>
             {!collapsed && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-muted-foreground hover:text-destructive"
                 onClick={(e) => { e.stopPropagation(); setLogoutOpen(true); }}
-                className="hover:text-red-400 transition-colors"
                 title={trans.logout.button}
               >
-                <LogOut size={14} className="text-[var(--text-muted)]" />
-              </button>
+                <LogOut size={14} />
+              </Button>
             )}
           </div>
           {collapsed && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-full mt-1 h-8 text-muted-foreground hover:text-destructive"
               onClick={() => setLogoutOpen(true)}
-              className="w-full flex justify-center mt-1 py-2 rounded-xl text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--bg-secondary)] transition-all"
               title={trans.logout.button}
             >
               <LogOut size={15} />
-            </button>
+            </Button>
           )}
         </div>
       </aside>

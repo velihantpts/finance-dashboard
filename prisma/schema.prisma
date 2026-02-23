@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String    @unique
+  password  String
+  role      String    @default("analyst")
+  image     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Business ────────────────────────────────────────────────────────────────
+
+model Transaction {
+  id        String   @id @default(cuid())
+  txnId     String   @unique
+  client    String
+  type      String
+  asset     String
+  amount    Float
+  status    String
+  risk      String
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RiskScore {
+  id       String @id @default(cuid())
+  category String @unique
+  score    Int
+  previous Int
+}
+
+model PortfolioAllocation {
+  id    String @id @default(cuid())
+  name  String @unique
+  value Float
+  color String
+}
+
+model Revenue {
+  id       String @id @default(cuid())
+  month    String @unique
+  revenue  Float
+  expenses Float
+  profit   Float
+}
+
+model KpiMetric {
+  id     String @id @default(cuid())
+  key    String @unique
+  value  String
+  change String
+  trend  String
+}
