@@ -82,17 +82,18 @@ export default function TransactionTable() {
               placeholder={trans.table.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 w-48 pl-8 pr-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[11px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
+              style={{ letterSpacing: 'normal' }}
+              className="h-8 w-52 pl-8 pr-3 rounded-lg bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
             />
           </div>
           {/* Filter */}
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setFilterOpen((o) => !o)}
-              className={`h-8 px-3 rounded-lg border text-[11px] flex items-center gap-1.5 transition-colors ${
+              className={`h-8 px-3 rounded-lg border text-[13px] flex items-center gap-1.5 transition-all ${
                 hasActiveFilter
                   ? 'bg-indigo-500/10 border-indigo-500/40 text-indigo-400'
-                  : 'bg-[var(--bg-tertiary)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  : 'bg-[var(--bg-tertiary)] border-[#2a2d3e] text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:border-indigo-500/30'
               }`}
             >
               <Filter size={12} />
@@ -107,7 +108,7 @@ export default function TransactionTable() {
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full h-8 px-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                    className="w-full h-8 px-2 rounded-lg bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                   >
                     <option value="">{trans.filter.all}</option>
                     <option value="Completed">Completed</option>
@@ -120,7 +121,7 @@ export default function TransactionTable() {
                   <select
                     value={filterRisk}
                     onChange={(e) => setFilterRisk(e.target.value)}
-                    className="w-full h-8 px-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                    className="w-full h-8 px-2 rounded-lg bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                   >
                     <option value="">{trans.filter.all}</option>
                     <option value="Low">Low</option>
@@ -133,7 +134,7 @@ export default function TransactionTable() {
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="w-full h-8 px-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                    className="w-full h-8 px-2 rounded-lg bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                   >
                     <option value="">{trans.filter.all}</option>
                     <option value="Buy">Buy</option>
@@ -154,10 +155,10 @@ export default function TransactionTable() {
           {/* Export */}
           <button
             onClick={handleExport}
-            className={`h-8 px-3 rounded-lg text-[11px] font-medium flex items-center gap-1.5 transition-all ${
+            className={`h-8 px-3 rounded-lg text-[13px] font-medium flex items-center gap-1.5 transition-all border ${
               exported
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20'
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20'
             }`}
           >
             {exported ? <Check size={12} /> : <Download size={12} />}

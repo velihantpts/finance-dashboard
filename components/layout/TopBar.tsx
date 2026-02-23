@@ -23,31 +23,39 @@ export default function TopBar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[var(--bg-primary)]/80 backdrop-blur-xl border-b border-[var(--border)] flex items-center justify-between px-8">
+    <header className="sticky top-0 z-40 h-16 bg-[var(--bg-primary)]/90 backdrop-blur-xl border-b border-[var(--border)] flex items-center justify-between px-8">
+      {/* Title */}
       <div>
-        <h1 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">
+        <h1 className="text-lg font-bold text-[var(--text-primary)] tracking-tight leading-tight">
           {trans.topbar.title}
         </h1>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5">
+        <p className="text-xs text-[var(--text-muted)] mt-0.5 tracking-normal leading-none">
           {trans.topbar.subtitle}
         </p>
       </div>
 
+      {/* Actions */}
       <div className="flex items-center gap-2">
+
         {/* Search */}
         <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+          <Search
+            size={13}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+          />
           <input
             type="text"
             placeholder={trans.topbar.search}
-            className="h-9 w-52 pl-9 pr-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all"
+            style={{ letterSpacing: 'normal' }}
+            className="h-9 w-52 pl-8 pr-3 rounded-xl bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all"
           />
         </div>
 
         {/* Language Toggle */}
         <button
           onClick={toggleLang}
-          className="h-9 px-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-xs font-bold text-[var(--text-secondary)] hover:text-indigo-400 hover:border-indigo-500/40 transition-all"
+          style={{ letterSpacing: '0.08em' }}
+          className="h-9 min-w-[44px] px-3.5 rounded-xl bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] font-bold text-[var(--text-secondary)] hover:text-indigo-400 hover:border-indigo-500/50 hover:bg-[var(--bg-secondary)] transition-all"
           title={lang === 'en' ? 'Türkçeye geç' : 'Switch to English'}
         >
           {lang === 'en' ? 'TR' : 'EN'}
@@ -56,7 +64,7 @@ export default function TopBar() {
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="w-9 h-9 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] flex items-center justify-center hover:bg-[var(--bg-tertiary)] transition-all"
+          className="w-9 h-9 rounded-xl bg-[var(--bg-tertiary)] border border-[#2a2d3e] flex items-center justify-center hover:bg-[var(--bg-secondary)] hover:border-indigo-500/50 transition-all"
           title={theme === 'dark' ? trans.theme.light : trans.theme.dark}
         >
           {theme === 'dark'
@@ -68,10 +76,17 @@ export default function TopBar() {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setNotifOpen((o) => !o)}
-            className="relative w-9 h-9 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] flex items-center justify-center hover:bg-[var(--bg-tertiary)] transition-colors"
+            className={`relative w-9 h-9 rounded-xl border flex items-center justify-center transition-all ${
+              notifOpen
+                ? 'bg-indigo-500/10 border-indigo-500/50'
+                : 'bg-[var(--bg-tertiary)] border-[#2a2d3e] hover:bg-[var(--bg-secondary)] hover:border-indigo-500/50'
+            }`}
           >
-            <Bell size={15} className="text-[var(--text-muted)]" />
-            <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[var(--bg-primary)]" />
+            <Bell
+              size={15}
+              className={notifOpen ? 'text-indigo-400' : 'text-[var(--text-secondary)]'}
+            />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[var(--bg-primary)]" />
           </button>
           {notifOpen && <NotificationPanel />}
         </div>
