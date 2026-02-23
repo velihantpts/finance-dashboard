@@ -72,7 +72,7 @@ export default function RiskPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-6">
+      <div className="p-8 space-y-8">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
@@ -85,7 +85,7 @@ export default function RiskPage() {
         </div>
 
         {/* Overall Score + Category Cards */}
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-3 gap-6">
           {/* Overall */}
           <div className="card flex flex-col items-center justify-center py-6">
             <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-medium mb-3">

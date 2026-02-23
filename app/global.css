@@ -7,7 +7,7 @@
   --bg-primary: #0a0b0f;
   --bg-secondary: #12131a;
   --bg-tertiary: #1a1b25;
-  --border: #1e2030;
+  --border: #262840;
   --text-primary: #e8e9ed;
   --text-secondary: #a0a3b1;
   --text-muted: #5c5f73;
@@ -29,6 +29,10 @@ html.light {
   --text-secondary: #3a3e55;
   --text-muted: #7880a2;
   --accent-glow: rgba(99, 102, 241, 0.08);
+}
+
+html.light .card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
 html.light .card:hover {
@@ -60,7 +64,8 @@ input, button, select, textarea {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 20px 24px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

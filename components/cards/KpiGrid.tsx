@@ -14,7 +14,7 @@ const kpiItemsBase = [
 export default function KpiGrid() {
   const { trans } = useLanguage();
   return (
-    <div className="grid grid-cols-4 gap-5">
+    <div className="grid grid-cols-4 gap-6">
       {kpiItemsBase.map((item) => (
         <KpiCard key={item.labelKey} {...item} title={trans.kpi[item.labelKey]} />
       ))}

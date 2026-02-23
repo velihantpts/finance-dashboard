@@ -129,7 +129,7 @@ export default function ReportsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-6">
+      <div className="p-8 space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -148,7 +148,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-3 gap-6">
           {stats.map((s, i) => (
             <div key={i} className="card">
               <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-medium mb-1">{s.label}</p>

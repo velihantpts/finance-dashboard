@@ -92,7 +92,7 @@ export default function SettingsPage() {
   return (
     <>
       <DashboardLayout>
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-8">
           {/* Header */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
@@ -104,7 +104,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-7">
             {/* Profile Card */}
             <div className="col-span-1 space-y-5">
               <div className="card">

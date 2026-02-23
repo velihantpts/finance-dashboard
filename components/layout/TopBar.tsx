@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Search, Bell, Sun, Moon } from 'lucide-react';
+import { Bell, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import NotificationPanel from '@/components/ui/NotificationPanel';
@@ -38,18 +38,12 @@ export default function TopBar() {
       <div className="flex items-center gap-2">
 
         {/* Search */}
-        <div className="relative">
-          <Search
-            size={13}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-          />
-          <input
-            type="text"
-            placeholder={trans.topbar.search}
-            style={{ letterSpacing: 'normal' }}
-            className="h-9 w-52 pl-8 pr-3 rounded-xl bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all"
-          />
-        </div>
+        <input
+          type="text"
+          placeholder={trans.topbar.search}
+          style={{ letterSpacing: 'normal' }}
+          className="h-9 w-52 px-4 rounded-xl bg-[var(--bg-tertiary)] border border-[#2a2d3e] text-[13px] text-center text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all"
+        />
 
         {/* Language Toggle */}
         <button
