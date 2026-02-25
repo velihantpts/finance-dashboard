@@ -1,6 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/providers/LanguageProvider';
+import { useCurrency } from '@/providers/CurrencyProvider';
 import { useStats } from '@/hooks/useApi';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +11,7 @@ const labelKeys = ['avgTransaction', 'settlementRate', 'complianceScore'] as con
 
 export default function QuickStats() {
   const { trans } = useLanguage();
+  const { format: formatCur } = useCurrency();
   const { data, loading } = useStats();
 
   if (loading) {
@@ -35,7 +37,7 @@ export default function QuickStats() {
 
   const displayStats = data
     ? [
-        { value: `$${Math.round(data.avgTransaction / 1000)}K` },
+        { value: formatCur(data.avgTransaction) },
         { value: `${data.settlementRate.toFixed(1)}%` },
         { value: `${data.completed}/${data.total}` },
       ]

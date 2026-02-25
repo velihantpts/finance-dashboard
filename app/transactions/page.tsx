@@ -46,7 +46,7 @@ export default function TransactionsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-8">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {summaryCards.map((card) => (
             <div key={card.label} className="card hover:translate-y-[-2px] transition-all duration-300">
               <div className="flex items-start justify-between mb-3">

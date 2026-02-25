@@ -11,6 +11,9 @@ export async function GET(req: Request) {
     const page   = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
     const limit  = Math.min(100, parseInt(searchParams.get('limit') ?? '50'));
 
+    const dateFrom = searchParams.get('dateFrom') ?? '';
+    const dateTo   = searchParams.get('dateTo')   ?? '';
+
     const where = {
       AND: [
         search ? {
@@ -23,6 +26,8 @@ export async function GET(req: Request) {
         status ? { status } : {},
         risk   ? { risk }   : {},
         type   ? { type }   : {},
+        dateFrom ? { date: { gte: new Date(dateFrom) } } : {},
+        dateTo   ? { date: { lte: new Date(dateTo + 'T23:59:59') } } : {},
       ],
     };
 

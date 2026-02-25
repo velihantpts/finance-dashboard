@@ -6,6 +6,7 @@ import ProfileModal from '@/components/ui/ProfileModal';
 import { Settings, Bell, Shield, Palette, Globe, Key, ChevronRight, ChevronDown, Eye, EyeOff, Copy, RefreshCw, Sun, Moon } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useTheme } from '@/providers/ThemeProvider';
+import { useCurrency, type Currency } from '@/providers/CurrencyProvider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ function loadPrefs(): { fontSize: string; currency: string; apiKey: string; webh
 export default function SettingsPage() {
   const { trans, lang, toggleLang } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const { currency: activeCurrency, setCurrency: setGlobalCurrency } = useCurrency();
   const [profileOpen, setProfileOpen] = useState(false);
   const [toggles, setToggles] = useState<boolean[]>([true, true, false, true]);
   const [activeSection, setActiveSection] = useState<number | null>(null);
@@ -186,8 +188,8 @@ export default function SettingsPage() {
             <div>
               <Label className="text-xs mb-2 block">{trans.pages.settings.currency}</Label>
               <div className="flex gap-2">
-                {['USD', 'EUR', 'TRY'].map((c) => (
-                  <Button key={c} variant={prefs.currency === c ? 'default' : 'outline'} size="sm" className="h-8 text-xs" onClick={() => { updatePref('currency', c); toast.success(trans.pages.settings.preferencesSaved); }}>
+                {(['USD', 'EUR', 'TRY'] as Currency[]).map((c) => (
+                  <Button key={c} variant={activeCurrency === c ? 'default' : 'outline'} size="sm" className="h-8 text-xs" onClick={() => { setGlobalCurrency(c); updatePref('currency', c); toast.success(trans.pages.settings.preferencesSaved); }}>
                     {c}
                   </Button>
                 ))}
@@ -231,7 +233,7 @@ export default function SettingsPage() {
   return (
     <>
       <DashboardLayout>
-        <div className="p-8 space-y-8">
+        <div className="p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8">
           {/* Header */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -243,9 +245,9 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-7">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
             {/* Profile Card */}
-            <div className="col-span-1 space-y-5">
+            <div className="lg:col-span-1 space-y-5">
               <div className="card">
                 <h3 className="text-sm font-semibold text-foreground mb-5">{trans.pages.settings.profile}</h3>
                 <div className="flex flex-col items-center text-center">
@@ -285,7 +287,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Settings Sections */}
-            <div className="col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-4">
               <div className="card">
                 <h3 className="text-sm font-semibold text-foreground mb-5">{trans.pages.settings.preferences}</h3>
                 <div className="space-y-0">
