@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Sun, Moon, Search } from 'lucide-react';
+import { Bell, Sun, Moon, Search, Menu, Command } from 'lucide-react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
+import { useSidebar } from '@/providers/SidebarProvider';
 import NotificationPanel, { getUnreadCount } from '@/components/ui/NotificationPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/input';
 export default function TopBar() {
   const { theme, toggleTheme } = useTheme();
   const { lang, trans, toggleLang } = useLanguage();
+  const { setMobileOpen } = useSidebar();
   const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -39,21 +41,33 @@ export default function TopBar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-background/90 backdrop-blur-xl border-b border-border flex items-center justify-between px-8">
-      {/* Title */}
-      <div>
-        <h1 className="text-lg font-bold text-foreground tracking-tight leading-tight">
-          {trans.topbar.title}
-        </h1>
-        <p className="text-xs text-muted-foreground mt-0.5 tracking-normal leading-none">
-          {trans.topbar.subtitle}
-        </p>
+    <header className="sticky top-0 z-40 h-16 bg-background/90 backdrop-blur-xl border-b border-border flex items-center justify-between px-4 md:px-6 lg:px-8">
+      <div className="flex items-center gap-3">
+        {/* Hamburger — mobile only */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 lg:hidden"
+          onClick={() => setMobileOpen(true)}
+        >
+          <Menu size={18} />
+        </Button>
+
+        {/* Title */}
+        <div className="hidden sm:block">
+          <h1 className="text-lg font-bold text-foreground tracking-tight leading-tight">
+            {trans.topbar.title}
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5 tracking-normal leading-none">
+            {trans.topbar.subtitle}
+          </p>
+        </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 md:gap-2">
         {/* Search */}
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
             type="text"
@@ -61,8 +75,11 @@ export default function TopBar() {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            className="h-9 w-52 pl-9 text-[13px]"
+            className="h-9 w-40 md:w-52 pl-9 pr-16 text-[13px]"
           />
+          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded hidden md:inline-flex items-center gap-0.5">
+            <Command size={9} />K
+          </kbd>
         </div>
 
         {/* Language Toggle */}

@@ -112,13 +112,17 @@ export interface TransactionParams {
   risk?: string;
   type?: string;
   page?: number;
+  limit?: number;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export function useTransactions(params: TransactionParams = {}) {
-  const { search = '', status = '', risk = '', type = '', page = 1 } = params;
+  const { search = '', status = '', risk = '', type = '', page = 1, limit = 10, dateFrom = '', dateTo = '' } = params;
 
   const [data, setData] = useState<TransactionRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,20 +132,23 @@ export function useTransactions(params: TransactionParams = {}) {
     if (status) q.set('status', status);
     if (risk)   q.set('risk', risk);
     if (type)   q.set('type', type);
+    if (dateFrom) q.set('dateFrom', dateFrom);
+    if (dateTo)   q.set('dateTo', dateTo);
     q.set('page', String(page));
+    q.set('limit', String(limit));
     return `/api/transactions?${q.toString()}`;
-  }, [search, status, risk, type, page]);
+  }, [search, status, risk, type, page, limit, dateFrom, dateTo]);
 
   const refetch = useCallback(() => {
     setLoading(true);
     fetch(buildUrl())
       .then((r) => r.json())
-      .then((r) => { setData(r.data ?? []); setTotal(r.total ?? 0); setError(null); })
+      .then((r) => { setData(r.data ?? []); setTotal(r.total ?? 0); setTotalPages(r.totalPages ?? 0); setError(null); })
       .catch(() => setError('Failed to fetch transactions'))
       .finally(() => setLoading(false));
   }, [buildUrl]);
 
   useEffect(() => { refetch(); }, [refetch]);
 
-  return { data, total, loading, error, refetch };
+  return { data, total, totalPages, loading, error, refetch };
 }

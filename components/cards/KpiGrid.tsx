@@ -35,7 +35,7 @@ export default function KpiGrid() {
 
   if (loading || !data) {
     return (
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {[1, 2, 3, 4].map((i) => (
           <Card key={i}>
             <CardContent className="pt-6">
@@ -53,8 +53,8 @@ export default function KpiGrid() {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-6">
-      {data.map((item) => {
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      {data.map((item, i) => {
         const labelKey = labelKeyMap[item.key];
         const title = labelKey ? trans.kpi[labelKey] : item.key;
         return (
@@ -66,6 +66,7 @@ export default function KpiGrid() {
             icon={iconMap[item.key] ?? DollarSign}
             trend={item.trend === 'up' ? 'up' : 'down'}
             accent={accentMap[item.key] ?? '#6366f1'}
+            index={i}
           />
         );
       })}

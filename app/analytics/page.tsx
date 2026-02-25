@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-8">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Performance Metrics */}
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {metricsBase.map((m) => (
             <div key={m.labelKey} className="card hover:translate-y-[-2px] transition-all duration-300">
               <p className="text-xs uppercase tracking-widest text-[var(--text-muted)] font-medium mb-3">{labels[m.labelKey]}</p>
@@ -63,15 +63,15 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <RevenueChart />
           </div>
           <PortfolioChart />
         </div>
 
         {/* Bottom Row */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ProfitChart />
           <div className="space-y-6">
             <WeeklyVolume />

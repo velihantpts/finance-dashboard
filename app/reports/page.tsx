@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { FileText, Download, Calendar, TrendingUp, BarChart3, PieChart, ArrowUpRight, Check, Loader2 } from 'lucide-react';
+import { FileText, Download, Calendar, TrendingUp, BarChart3, PieChart, ArrowUpRight, Check, Loader2, FileDown } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { toast } from 'sonner';
+import { generateReportPdf } from '@/lib/pdf';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,7 +87,7 @@ export default function ReportsPage() {
   })();
   const statsValues = ['148', 'Feb 1', String(3 + scheduledCount)];
 
-  const handleDownload = async (i: number) => {
+  const handleDownload = async (i: number, format: 'csv' | 'pdf' = 'csv') => {
     const report = reportsData[i];
     setDownloadingIdx(i);
     const toastId = toast.loading(trans.pages.reports.preparing);
@@ -95,9 +96,24 @@ export default function ReportsPage() {
       if (!res.ok) throw new Error('Failed');
       const json = await res.json();
       const rows = Array.isArray(json) ? json : (json.data ?? [json]);
-      const csv = jsonToCsv(rows);
       const title = titles[report.titleKey as keyof typeof titles] || 'report';
-      downloadBlob(csv, `${title.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
+      const safeName = title.replace(/[^a-zA-Z0-9]/g, '_');
+
+      if (format === 'pdf') {
+        const headers = rows.length ? Object.keys(rows[0]) : [];
+        const bodyRows = rows.map((row: Record<string, unknown>) => headers.map((h) => String(row[h] ?? '')));
+        generateReportPdf({
+          title,
+          subtitle: descs[report.descKey as keyof typeof descs],
+          headers,
+          rows: bodyRows,
+          filename: `${safeName}.pdf`,
+        });
+      } else {
+        const csv = jsonToCsv(rows);
+        downloadBlob(csv, `${safeName}.csv`);
+      }
+
       toast.success(trans.pages.reports.downloaded, { id: toastId });
       setDownloadedIdx(i);
       setTimeout(() => setDownloadedIdx(null), 2000);
@@ -122,7 +138,7 @@ export default function ReportsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-8">
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -141,7 +157,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
           {stats.map((s, i) => (
             <div key={i} className="card">
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-1">{s.label}</p>
@@ -177,16 +193,38 @@ export default function ReportsPage() {
                   </span>
                   <span className="text-xs text-muted-foreground w-20 text-right">{report.date}</span>
                   <span className="text-xs text-muted-foreground w-12 text-right">{report.size}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={`h-8 w-8 ${downloadedIdx === i ? 'text-emerald-400' : 'text-muted-foreground hover:text-indigo-400'}`}
-                    onClick={(e) => { e.stopPropagation(); handleDownload(i); }}
-                    disabled={downloadingIdx === i}
-                    title={downloadedIdx === i ? trans.pages.reports.downloaded : trans.pages.reports.download}
-                  >
-                    {downloadingIdx === i ? <Loader2 size={14} className="animate-spin" /> : downloadedIdx === i ? <Check size={14} /> : <Download size={14} />}
-                  </Button>
+                  {downloadingIdx === i ? (
+                    <div className="h-8 w-8 flex items-center justify-center">
+                      <Loader2 size={14} className="animate-spin text-muted-foreground" />
+                    </div>
+                  ) : downloadedIdx === i ? (
+                    <div className="h-8 w-8 flex items-center justify-center">
+                      <Check size={14} className="text-emerald-400" />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[10px] px-2 text-muted-foreground hover:text-indigo-400"
+                        onClick={(e) => { e.stopPropagation(); handleDownload(i, 'csv'); }}
+                        title="CSV"
+                      >
+                        <Download size={12} className="mr-1" />
+                        {trans.pages.reports.exportCsv}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[10px] px-2 text-muted-foreground hover:text-red-400"
+                        onClick={(e) => { e.stopPropagation(); handleDownload(i, 'pdf'); }}
+                        title="PDF"
+                      >
+                        <FileDown size={12} className="mr-1" />
+                        {trans.pages.reports.exportPdf}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

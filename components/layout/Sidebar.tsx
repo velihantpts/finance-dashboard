@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { collapsed, toggle } = useSidebar();
+  const { collapsed, toggle, mobileOpen, setMobileOpen } = useSidebar();
   const { trans, lang } = useLanguage();
   const [logoutOpen, setLogoutOpen] = useState(false);
   const { data: session } = useSession();
@@ -61,7 +61,9 @@ export default function Sidebar() {
   return (
     <>
       <aside
-        className="sidebar-transition fixed left-0 top-0 h-screen bg-background border-r border-border flex flex-col z-50 overflow-hidden"
+        className={`sidebar-transition fixed left-0 top-0 h-screen bg-background border-r border-border flex flex-col z-50 overflow-hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 transition-transform duration-300`}
         style={{ width: collapsed ? 64 : 240 }}
       >
         {/* Logo */}
@@ -100,6 +102,7 @@ export default function Sidebar() {
             const linkEl = (
               <Link
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 className={`flex items-center rounded-xl text-sm transition-all duration-200 ${
                   isActive
                     ? 'bg-primary/10 text-primary font-medium'
