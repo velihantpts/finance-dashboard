@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import KpiGrid from '@/components/cards/KpiGrid';
 import RevenueChart from '@/components/charts/RevenueChart';
@@ -30,7 +31,9 @@ export default function Dashboard() {
           <ProfitChart />
         </div>
 
-        <TransactionTable />
+        <Suspense fallback={null}>
+          <TransactionTable />
+        </Suspense>
       </div>
     </DashboardLayout>
   );

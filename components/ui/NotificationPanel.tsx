@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
 
@@ -11,14 +12,17 @@ interface Notification {
   message: string;
   time: string;
   read: boolean;
+  href?: string;
 }
 
-const initial: Notification[] = [
-  { id: 1, type: 'alert', title: 'Market Risk Threshold Exceeded', message: 'Market Risk score reached 72, exceeding the limit of 70.', time: '15 min ago', read: false },
-  { id: 2, type: 'success', title: 'Transaction Completed', message: 'TXN-7842 Goldman Capital Buy $2.5M completed successfully.', time: '1 hr ago', read: false },
-  { id: 3, type: 'warning', title: 'Liquidity Risk Elevated', message: 'Liquidity Risk approaching warning level at 58.', time: '3 hrs ago', read: true },
-  { id: 4, type: 'info', title: 'Monthly Report Ready', message: 'Q4 2024 Performance Report is available for download.', time: '1 day ago', read: true },
-  { id: 5, type: 'success', title: 'Compliance Check Passed', message: 'All compliance requirements met for this period.', time: '2 days ago', read: true },
+const STORAGE_KEY = 'notifications_state';
+
+const defaultNotifications: Notification[] = [
+  { id: 1, type: 'alert', title: 'Market Risk Threshold Exceeded', message: 'Market Risk score reached 72, exceeding the limit of 70.', time: '15 min ago', read: false, href: '/risk' },
+  { id: 2, type: 'success', title: 'Transaction Completed', message: 'TXN-7842 Goldman Capital Buy $2.5M completed successfully.', time: '1 hr ago', read: false, href: '/transactions' },
+  { id: 3, type: 'warning', title: 'Liquidity Risk Elevated', message: 'Liquidity Risk approaching warning level at 58.', time: '3 hrs ago', read: true, href: '/risk' },
+  { id: 4, type: 'info', title: 'Monthly Report Ready', message: 'Q4 2024 Performance Report is available for download.', time: '1 day ago', read: true, href: '/reports' },
+  { id: 5, type: 'success', title: 'Compliance Check Passed', message: 'All compliance requirements met for this period.', time: '2 days ago', read: true, href: '/settings' },
 ];
 
 const iconMap = {
@@ -28,19 +32,67 @@ const iconMap = {
   info: { Icon: Info, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
 };
 
-export default function NotificationPanel() {
+function loadState(): { readIds: number[]; dismissedIds: number[] } {
+  if (typeof window === 'undefined') return { readIds: [], dismissedIds: [] };
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch { return { readIds: [], dismissedIds: [] }; }
+}
+
+function saveState(readIds: number[], dismissedIds: number[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ readIds, dismissedIds }));
+}
+
+export function getUnreadCount(): number {
+  const { readIds = [], dismissedIds = [] } = loadState();
+  return defaultNotifications.filter((n) => !dismissedIds.includes(n.id) && !readIds.includes(n.id) && !n.read).length;
+}
+
+export default function NotificationPanel({ onClose }: { onClose?: () => void }) {
   const { trans } = useLanguage();
-  const [notifications, setNotifications] = useState(initial);
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    const { readIds = [], dismissedIds = [] } = loadState();
+    const visible = defaultNotifications
+      .filter((n) => !dismissedIds.includes(n.id))
+      .map((n) => ({ ...n, read: n.read || readIds.includes(n.id) }));
+    setNotifications(visible);
+  }, []);
+
   const unread = notifications.filter((n) => !n.read).length;
 
-  const markAllRead = () => setNotifications((ns) => ns.map((n) => ({ ...n, read: true })));
-  const dismiss = (id: number) => setNotifications((ns) => ns.filter((n) => n.id !== id));
+  const markAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    const { dismissedIds = [] } = loadState();
+    saveState(allIds, dismissedIds);
+    setNotifications((ns) => ns.map((n) => ({ ...n, read: true })));
+  };
+
+  const dismiss = (id: number) => {
+    const { readIds = [], dismissedIds = [] } = loadState();
+    saveState(readIds, [...dismissedIds, id]);
+    setNotifications((ns) => ns.filter((n) => n.id !== id));
+  };
+
+  const handleClick = (n: Notification) => {
+    if (!n.read) {
+      const { readIds = [], dismissedIds = [] } = loadState();
+      saveState([...readIds, n.id], dismissedIds);
+      setNotifications((ns) => ns.map((item) => item.id === n.id ? { ...item, read: true } : item));
+    }
+    if (n.href) {
+      router.push(n.href);
+      onClose?.();
+    }
+  };
 
   return (
-    <div className="absolute right-0 top-12 w-[360px] bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl shadow-2xl shadow-black/20 overflow-hidden z-50">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
+    <div className="absolute right-0 top-12 w-[360px] bg-card border border-border rounded-2xl shadow-2xl shadow-black/20 overflow-hidden z-50">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-[var(--text-primary)]">{trans.topbar.notifications}</span>
+          <span className="text-sm font-semibold text-foreground">{trans.topbar.notifications}</span>
           {unread > 0 && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">{unread}</span>
           )}
@@ -56,7 +108,7 @@ export default function NotificationPanel() {
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <CheckCircle size={32} className="text-emerald-400 mb-3" />
-            <p className="text-sm text-[var(--text-muted)]">{trans.topbar.noNotifications}</p>
+            <p className="text-sm text-muted-foreground">{trans.topbar.noNotifications}</p>
           </div>
         ) : (
           notifications.map((n) => {
@@ -64,26 +116,27 @@ export default function NotificationPanel() {
             return (
               <div
                 key={n.id}
-                className={`flex items-start gap-3 px-5 py-3.5 border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-tertiary)] transition-colors ${!n.read ? 'bg-indigo-500/5' : ''}`}
+                onClick={() => handleClick(n)}
+                className={`flex items-start gap-3 px-5 py-3.5 border-b border-border last:border-0 hover:bg-muted transition-colors cursor-pointer ${!n.read ? 'bg-indigo-500/5' : ''}`}
               >
                 <div className={`w-7 h-7 rounded-lg ${bg} flex items-center justify-center shrink-0 mt-0.5`}>
                   <Icon size={13} className={color} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <p className={`text-xs font-medium leading-snug ${!n.read ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                    <p className={`text-xs font-medium leading-snug ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {n.title}
                     </p>
                     {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0 mt-1" />}
                   </div>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5 leading-relaxed">{n.message}</p>
-                  <p className="text-[10px] text-[var(--text-muted)] mt-1">{n.time}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{n.message}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{n.time}</p>
                 </div>
                 <button
-                  onClick={() => dismiss(n.id)}
-                  className="w-5 h-5 rounded-md hover:bg-[var(--bg-tertiary)] flex items-center justify-center transition-colors shrink-0"
+                  onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
+                  className="w-5 h-5 rounded-md hover:bg-muted flex items-center justify-center transition-colors shrink-0"
                 >
-                  <X size={11} className="text-[var(--text-muted)]" />
+                  <X size={11} className="text-muted-foreground" />
                 </button>
               </div>
             );

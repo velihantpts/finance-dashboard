@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Download, Check, Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/utils';
@@ -31,8 +32,9 @@ import {
 
 export default function TransactionTable() {
   const { trans } = useLanguage();
+  const searchParams = useSearchParams();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') ?? '');
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterRisk, setFilterRisk] = useState('');
@@ -65,7 +67,19 @@ export default function TransactionTable() {
   const clearFilters = () => { setFilterStatus(''); setFilterRisk(''); setFilterType(''); };
 
   const handleExport = () => {
+    if (!transactions.length) { toast.error(trans.table.noResults); return; }
+    const headers = [trans.table.headers.id, trans.table.headers.client, trans.table.headers.type, trans.table.headers.asset, trans.table.headers.amount, trans.table.headers.risk, trans.table.headers.status, trans.table.headers.date];
+    const rows = transactions.map((t) => [t.txnId, t.client, t.type, t.asset, t.amount, t.risk, t.status, new Date(t.date).toLocaleDateString()]);
+    const csv = '\uFEFF' + [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
     setExported(true);
+    toast.success(trans.table.exported);
     setTimeout(() => setExported(false), 2000);
   };
 
