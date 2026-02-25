@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import TransactionTable from '@/components/tables/TransactionTable';
 import { Wallet, CheckCircle, Clock, XCircle, ArrowUpRight } from 'lucide-react';
@@ -74,7 +75,9 @@ export default function TransactionsPage() {
         </div>
 
         {/* Full Table */}
-        <TransactionTable />
+        <Suspense fallback={null}>
+          <TransactionTable />
+        </Suspense>
       </div>
     </DashboardLayout>
   );

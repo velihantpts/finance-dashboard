@@ -1,18 +1,26 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, Sun, Moon, Search } from 'lucide-react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
-import NotificationPanel from '@/components/ui/NotificationPanel';
+import NotificationPanel, { getUnreadCount } from '@/components/ui/NotificationPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function TopBar() {
   const { theme, toggleTheme } = useTheme();
   const { lang, trans, toggleLang } = useLanguage();
+  const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setUnreadCount(getUnreadCount());
+  }, [notifOpen]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -23,6 +31,12 @@ export default function TopBar() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchValue.trim()) {
+      router.push(`/transactions?search=${encodeURIComponent(searchValue.trim())}`);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 h-16 bg-background/90 backdrop-blur-xl border-b border-border flex items-center justify-between px-8">
@@ -44,6 +58,9 @@ export default function TopBar() {
           <Input
             type="text"
             placeholder={trans.topbar.search}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             className="h-9 w-52 pl-9 text-[13px]"
           />
         </div>
@@ -81,9 +98,11 @@ export default function TopBar() {
             onClick={() => setNotifOpen((o) => !o)}
           >
             <Bell size={15} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-background" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-background" />
+            )}
           </Button>
-          {notifOpen && <NotificationPanel />}
+          {notifOpen && <NotificationPanel onClose={() => setNotifOpen(false)} />}
         </div>
       </div>
     </header>
