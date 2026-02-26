@@ -2,13 +2,34 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Sun, Moon, Search, Menu, Command } from 'lucide-react';
+import { Bell, Sun, Moon, Search, Menu, Command, Keyboard, Maximize, Minimize, RefreshCw } from 'lucide-react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useSidebar } from '@/providers/SidebarProvider';
 import NotificationPanel, { useNotificationCount } from '@/components/ui/NotificationPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+function LiveClock() {
+  const [time, setTime] = useState('');
+
+  useEffect(() => {
+    const update = () => {
+      setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    };
+    update();
+    const id = setInterval(update, 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!time) return null;
+  return (
+    <span className="text-[11px] font-mono text-muted-foreground tabular-nums hidden md:inline">
+      {time}
+    </span>
+  );
+}
 
 export default function TopBar() {
   const { theme, toggleTheme } = useTheme();
@@ -17,6 +38,8 @@ export default function TopBar() {
   const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const unreadCount = useNotificationCount();
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -30,10 +53,34 @@ export default function TopBar() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchValue.trim()) {
       router.push(`/transactions?search=${encodeURIComponent(searchValue.trim())}`);
     }
+  };
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    router.refresh();
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const openShortcuts = () => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }));
   };
 
   return (
@@ -49,11 +96,29 @@ export default function TopBar() {
           <Menu size={18} />
         </Button>
 
-        {/* Title */}
+        {/* Title + Clock */}
         <div className="hidden sm:block">
-          <h1 className="text-lg font-bold text-foreground tracking-tight leading-tight">
-            {trans.topbar.title}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold text-foreground tracking-tight leading-tight">
+              {trans.topbar.title}
+            </h1>
+            <div className="flex items-center gap-2">
+              <LiveClock />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleRefresh}
+                    className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+                  >
+                    <RefreshCw size={11} className={refreshing ? 'animate-spin' : ''} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-[10px]">
+                  {lang === 'tr' ? 'Verileri yenile' : 'Refresh data'}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
           <p className="text-xs text-muted-foreground mt-0.5 tracking-normal leading-none">
             {trans.topbar.subtitle}
           </p>
@@ -77,6 +142,45 @@ export default function TopBar() {
             <Command size={9} />K
           </kbd>
         </div>
+
+        {/* Keyboard Shortcuts */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 hidden md:inline-flex"
+              onClick={openShortcuts}
+            >
+              <Keyboard size={15} className="text-muted-foreground" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-[10px]">
+            {lang === 'tr' ? 'Klavye kısayolları' : 'Keyboard shortcuts'}
+            <kbd className="ml-1.5 px-1 py-0.5 font-mono bg-muted border border-border rounded text-[8px]">?</kbd>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Fullscreen */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 hidden lg:inline-flex"
+              onClick={toggleFullscreen}
+            >
+              {isFullscreen
+                ? <Minimize size={15} className="text-muted-foreground" />
+                : <Maximize size={15} className="text-muted-foreground" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-[10px]">
+            {isFullscreen
+              ? (lang === 'tr' ? 'Tam ekrandan çık' : 'Exit fullscreen')
+              : (lang === 'tr' ? 'Tam ekran' : 'Fullscreen')}
+          </TooltipContent>
+        </Tooltip>
 
         {/* Language Toggle */}
         <Button

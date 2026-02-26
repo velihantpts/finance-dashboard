@@ -57,6 +57,17 @@ export function useKeyboardShortcuts() {
       return;
     }
 
+    // F11 → Fullscreen toggle
+    if (e.key === 'F11') {
+      e.preventDefault();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+      return;
+    }
+
     // Esc → Close help
     if (e.key === 'Escape' && helpOpen) {
       setHelpOpen(false);
@@ -81,5 +92,6 @@ export const SHORTCUT_LIST = [
   { keys: ['G', 'M'], description: 'Go to Risk Management' },
   { keys: ['G', 'S'], description: 'Go to Settings' },
   { keys: ['G', 'L'], description: 'Go to Activity Log' },
+  { keys: ['F11'], description: 'Toggle Fullscreen' },
   { keys: ['?'], description: 'Keyboard Shortcuts' },
 ];
