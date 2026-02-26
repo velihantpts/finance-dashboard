@@ -4,10 +4,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("POSTGRES_PRISMA_URL")
 }
-
-// ─── Auth ────────────────────────────────────────────────────────────────────
 
 model User {
   id        String    @id @default(cuid())
@@ -28,8 +26,6 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-// ─── Business ────────────────────────────────────────────────────────────────
 
 model Transaction {
   id        String   @id @default(cuid())
