@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Filter, Download, Check, Plus, Pencil, Trash2, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Filter, Download, Check, Plus, Pencil, Trash2, CalendarIcon, ChevronLeft, ChevronRight, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { useLanguage } from '@/providers/LanguageProvider';
@@ -11,6 +11,8 @@ import { useTransactions } from '@/hooks/useApi';
 import type { TransactionRow } from '@/hooks/useApi';
 import TransactionModal from '@/components/ui/TransactionModal';
 import EmptyState from '@/components/ui/EmptyState';
+import { copyToClipboard } from '@/lib/clipboard';
+import { fireConfetti } from '@/components/ui/Confetti';
 import StatusBadge from './StatusBadge';
 import RiskBadge from './RiskBadge';
 import { Button } from '@/components/ui/button';
@@ -104,7 +106,12 @@ export default function TransactionTable() {
     const wasEdit = !!editTxn;
     setEditTxn(null);
     refetch();
-    wasEdit ? toast.success('Transaction updated') : toast.success('Transaction created');
+    if (wasEdit) {
+      toast.success('Transaction updated');
+    } else {
+      toast.success('Transaction created');
+      fireConfetti();
+    }
   };
 
   const handleDelete = async () => {
@@ -300,7 +307,14 @@ export default function TransactionTable() {
                   {transactions.map((txn) => (
                     <TableRow key={txn.id} className="group">
                       <TableCell>
-                        <span className="text-xs font-mono font-medium text-primary">{txn.txnId}</span>
+                        <button
+                          onClick={() => copyToClipboard(txn.txnId, 'Transaction ID')}
+                          className="text-xs font-mono font-medium text-primary hover:underline cursor-pointer flex items-center gap-1 group/copy"
+                          title="Click to copy"
+                        >
+                          {txn.txnId}
+                          <Copy size={10} className="opacity-0 group-hover/copy:opacity-100 transition-opacity text-muted-foreground" />
+                        </button>
                       </TableCell>
                       <TableCell>
                         <span className="text-xs font-medium">{txn.client}</span>
