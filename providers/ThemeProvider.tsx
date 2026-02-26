@@ -1,12 +1,12 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 
 type Theme = 'dark' | 'light';
 
 interface ThemeCtx {
   theme: Theme;
-  toggleTheme: () => void;
+  toggleTheme: (e?: React.MouseEvent) => void;
 }
 
 const Ctx = createContext<ThemeCtx>({ theme: 'dark', toggleTheme: () => {} });
@@ -22,13 +22,44 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const toggleTheme = () =>
-    setTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
+  const toggleTheme = useCallback((e?: React.MouseEvent) => {
+    const next: Theme = theme === 'dark' ? 'light' : 'dark';
+
+    const update = () => {
+      setTheme(next);
       localStorage.setItem('theme', next);
       document.documentElement.classList.toggle('light', next === 'light');
-      return next;
-    });
+    };
+
+    // Use View Transition API for circular reveal if available
+    if (e && document.startViewTransition) {
+      const x = e.clientX;
+      const y = e.clientY;
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      );
+
+      const transition = document.startViewTransition(update);
+      transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: 500,
+            easing: 'ease-in-out',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        );
+      });
+    } else {
+      update();
+    }
+  }, [theme]);
 
   return <Ctx.Provider value={{ theme, toggleTheme }}>{children}</Ctx.Provider>;
 }

@@ -1,7 +1,8 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useSpring, useTransform, useInView } from 'framer-motion';
 import type { ComponentType } from 'react';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,39 @@ interface KpiCardProps {
   trend: 'up' | 'down';
   accent: string;
   index?: number;
+}
+
+function AnimatedValue({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+
+  // Extract numeric part for animation
+  const numericMatch = value.match(/([\d,.]+)/);
+  const numericValue = numericMatch ? parseFloat(numericMatch[1].replace(/,/g, '')) : 0;
+  const prefix = value.slice(0, value.indexOf(numericMatch?.[1] ?? ''));
+  const suffix = value.slice((value.indexOf(numericMatch?.[1] ?? '') + (numericMatch?.[1]?.length ?? 0)));
+
+  const spring = useSpring(0, { stiffness: 50, damping: 20 });
+  const display = useTransform(spring, (v) => {
+    if (numericValue >= 1000) {
+      return v.toLocaleString('en-US', { minimumFractionDigits: numericValue % 1 !== 0 ? 1 : 0, maximumFractionDigits: 1 });
+    }
+    return v.toLocaleString('en-US');
+  });
+
+  useEffect(() => {
+    if (isInView) spring.set(numericValue);
+  }, [isInView, spring, numericValue]);
+
+  if (!numericMatch) return <span>{value}</span>;
+
+  return (
+    <span ref={ref}>
+      {prefix}
+      <motion.span>{display}</motion.span>
+      {suffix}
+    </span>
+  );
 }
 
 export default function KpiCard({ title, value, change, icon: Icon, trend, accent, index = 0 }: KpiCardProps) {
@@ -32,7 +66,7 @@ export default function KpiCard({ title, value, change, icon: Icon, trend, accen
                 {title}
               </p>
               <p className="text-[28px] font-bold text-foreground leading-none tracking-tight">
-                {value}
+                <AnimatedValue value={value} />
               </p>
             </div>
             <div

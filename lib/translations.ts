@@ -9,6 +9,7 @@ export const translations = {
       transactions: 'Transactions',
       reports: 'Reports',
       riskManagement: 'Risk Management',
+      activity: 'Activity',
       settings: 'Settings',
     },
     topbar: {
@@ -148,6 +149,7 @@ export const translations = {
       transactions: 'İşlemler',
       reports: 'Raporlar',
       riskManagement: 'Risk Yönetimi',
+      activity: 'Aktivite',
       settings: 'Ayarlar',
     },
     topbar: {

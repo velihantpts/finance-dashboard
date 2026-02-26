@@ -1,29 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { X, AlertTriangle, CheckCircle, Info, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
-
-interface Notification {
-  id: number;
-  type: 'alert' | 'success' | 'info' | 'warning';
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  href?: string;
-}
-
-const STORAGE_KEY = 'notifications_state';
-
-const defaultNotifications: Notification[] = [
-  { id: 1, type: 'alert', title: 'Market Risk Threshold Exceeded', message: 'Market Risk score reached 72, exceeding the limit of 70.', time: '15 min ago', read: false, href: '/risk' },
-  { id: 2, type: 'success', title: 'Transaction Completed', message: 'TXN-7842 Goldman Capital Buy $2.5M completed successfully.', time: '1 hr ago', read: false, href: '/transactions' },
-  { id: 3, type: 'warning', title: 'Liquidity Risk Elevated', message: 'Liquidity Risk approaching warning level at 58.', time: '3 hrs ago', read: true, href: '/risk' },
-  { id: 4, type: 'info', title: 'Monthly Report Ready', message: 'Q4 2024 Performance Report is available for download.', time: '1 day ago', read: true, href: '/reports' },
-  { id: 5, type: 'success', title: 'Compliance Check Passed', message: 'All compliance requirements met for this period.', time: '2 days ago', read: true, href: '/settings' },
-];
+import { useNotifications, type NotificationItem } from '@/hooks/useNotifications';
 
 const iconMap = {
   alert: { Icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-400/10' },
@@ -32,60 +12,38 @@ const iconMap = {
   info: { Icon: Info, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
 };
 
-function loadState(): { readIds: number[]; dismissedIds: number[] } {
-  if (typeof window === 'undefined') return { readIds: [], dismissedIds: [] };
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  } catch { return { readIds: [], dismissedIds: [] }; }
-}
-
-function saveState(readIds: number[], dismissedIds: number[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ readIds, dismissedIds }));
-}
-
-export function getUnreadCount(): number {
-  const { readIds = [], dismissedIds = [] } = loadState();
-  return defaultNotifications.filter((n) => !dismissedIds.includes(n.id) && !readIds.includes(n.id) && !n.read).length;
+export function useNotificationCount() {
+  const { unreadCount } = useNotifications();
+  return unreadCount;
 }
 
 export default function NotificationPanel({ onClose }: { onClose?: () => void }) {
   const { trans } = useLanguage();
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { notifications, loading, unreadCount, markAsRead, markAllRead } = useNotifications();
 
-  useEffect(() => {
-    const { readIds = [], dismissedIds = [] } = loadState();
-    const visible = defaultNotifications
-      .filter((n) => !dismissedIds.includes(n.id))
-      .map((n) => ({ ...n, read: n.read || readIds.includes(n.id) }));
-    setNotifications(visible);
-  }, []);
-
-  const unread = notifications.filter((n) => !n.read).length;
-
-  const markAllRead = () => {
-    const allIds = notifications.map((n) => n.id);
-    const { dismissedIds = [] } = loadState();
-    saveState(allIds, dismissedIds);
-    setNotifications((ns) => ns.map((n) => ({ ...n, read: true })));
+  const formatTime = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hr ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
   };
 
-  const dismiss = (id: number) => {
-    const { readIds = [], dismissedIds = [] } = loadState();
-    saveState(readIds, [...dismissedIds, id]);
-    setNotifications((ns) => ns.filter((n) => n.id !== id));
-  };
-
-  const handleClick = (n: Notification) => {
-    if (!n.read) {
-      const { readIds = [], dismissedIds = [] } = loadState();
-      saveState([...readIds, n.id], dismissedIds);
-      setNotifications((ns) => ns.map((item) => item.id === n.id ? { ...item, read: true } : item));
-    }
-    if (n.href) {
-      router.push(n.href);
-      onClose?.();
-    }
+  const handleClick = (n: NotificationItem) => {
+    if (!n.read) markAsRead(n.id);
+    const hrefMap: Record<string, string> = {
+      alert: '/risk',
+      warning: '/risk',
+      success: '/transactions',
+      info: '/reports',
+    };
+    const href = hrefMap[n.type] || '/';
+    router.push(href);
+    onClose?.();
   };
 
   return (
@@ -93,11 +51,11 @@ export default function NotificationPanel({ onClose }: { onClose?: () => void })
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-foreground">{trans.topbar.notifications}</span>
-          {unread > 0 && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">{unread}</span>
+          {unreadCount > 0 && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">{unreadCount}</span>
           )}
         </div>
-        {unread > 0 && (
+        {unreadCount > 0 && (
           <button onClick={markAllRead} className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-medium">
             {trans.topbar.markAllRead}
           </button>
@@ -105,14 +63,18 @@ export default function NotificationPanel({ onClose }: { onClose?: () => void })
       </div>
 
       <div className="max-h-[380px] overflow-y-auto">
-        {notifications.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={20} className="animate-spin text-muted-foreground" />
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <CheckCircle size={32} className="text-emerald-400 mb-3" />
             <p className="text-sm text-muted-foreground">{trans.topbar.noNotifications}</p>
           </div>
         ) : (
           notifications.map((n) => {
-            const { Icon, color, bg } = iconMap[n.type];
+            const { Icon, color, bg } = iconMap[n.type] || iconMap.info;
             return (
               <div
                 key={n.id}
@@ -130,10 +92,10 @@ export default function NotificationPanel({ onClose }: { onClose?: () => void })
                     {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0 mt-1" />}
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{n.message}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">{n.time}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{formatTime(n.createdAt)}</p>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
+                  onClick={(e) => { e.stopPropagation(); if (!n.read) markAsRead(n.id); }}
                   className="w-5 h-5 rounded-md hover:bg-muted flex items-center justify-center transition-colors shrink-0"
                 >
                   <X size={11} className="text-muted-foreground" />
