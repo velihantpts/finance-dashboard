@@ -11,6 +11,10 @@ import OnboardingTour from '@/components/ui/OnboardingTour';
 import CommandPalette from '@/components/ui/CommandPalette';
 import FloatingActions from '@/components/ui/FloatingActions';
 import CurrencyConverter from '@/components/ui/CurrencyConverter';
+import ScrollToTop from '@/components/ui/ScrollToTop';
+import SessionTimeoutWarning from '@/components/ui/SessionTimeoutWarning';
+import ChangelogModal from '@/components/ui/ChangelogModal';
+import ConfettiProvider from '@/components/ui/Confetti';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import { useSidebar } from '@/providers/SidebarProvider';
 import { useKeyboardShortcuts, SHORTCUT_LIST } from '@/hooks/useKeyboardShortcuts';
@@ -131,6 +135,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Currency Converter */}
       <CurrencyConverter />
+
+      {/* Scroll to Top */}
+      <ScrollToTop />
+
+      {/* Session Timeout Warning */}
+      <SessionTimeoutWarning />
+
+      {/* Changelog / What's New */}
+      <ChangelogModal />
+
+      {/* Confetti Provider */}
+      <ConfettiProvider />
 
       {/* Mobile Bottom Nav */}
       <MobileBottomNav />
