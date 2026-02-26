@@ -1,12 +1,15 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import Breadcrumb from '@/components/ui/Breadcrumb';
 import TopProgressBar from '@/components/ui/TopProgressBar';
 import OnboardingTour from '@/components/ui/OnboardingTour';
+import CommandPalette from '@/components/ui/CommandPalette';
+import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import { useSidebar } from '@/providers/SidebarProvider';
 import { useKeyboardShortcuts, SHORTCUT_LIST } from '@/hooks/useKeyboardShortcuts';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -18,6 +21,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const pathname = usePathname();
   const { collapsed, mobileOpen, setMobileOpen } = useSidebar();
   const { helpOpen, setHelpOpen } = useKeyboardShortcuts();
   const onboarding = useOnboarding();
@@ -44,13 +48,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         `}</style>
         <TopBar />
         <Breadcrumb />
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
-        >
-          {children}
-        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Keyboard Shortcuts Help Modal */}
@@ -112,6 +120,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         onSkip={onboarding.skip}
         onFinish={onboarding.finish}
       />
+
+      {/* Command Palette */}
+      <CommandPalette />
+
+      {/* Mobile Bottom Nav */}
+      <MobileBottomNav />
     </div>
   );
 }

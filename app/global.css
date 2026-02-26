@@ -193,3 +193,11 @@ html.light .card { box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07); }
 }
 ::view-transition-old(root) { z-index: 1; }
 ::view-transition-new(root) { z-index: 9999; }
+
+/* ── Mobile bottom nav safe area ─────────────────────────────── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+@media (max-width: 1023px) {
+  main.main-transition { padding-bottom: 80px; }
+}
