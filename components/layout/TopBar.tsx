@@ -6,7 +6,7 @@ import { Bell, Sun, Moon, Search, Menu, Command } from 'lucide-react';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useSidebar } from '@/providers/SidebarProvider';
-import NotificationPanel, { getUnreadCount } from '@/components/ui/NotificationPanel';
+import NotificationPanel, { useNotificationCount } from '@/components/ui/NotificationPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -17,12 +17,8 @@ export default function TopBar() {
   const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = useNotificationCount();
   const notifRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setUnreadCount(getUnreadCount());
-  }, [notifOpen]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -67,7 +63,7 @@ export default function TopBar() {
       {/* Actions */}
       <div className="flex items-center gap-1.5 md:gap-2">
         {/* Search */}
-        <div className="relative hidden sm:block">
+        <div data-tour="search" className="relative hidden sm:block">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
             type="text"
@@ -95,10 +91,11 @@ export default function TopBar() {
 
         {/* Theme Toggle */}
         <Button
+          data-tour="theme"
           variant="outline"
           size="icon"
           className="h-9 w-9"
-          onClick={toggleTheme}
+          onClick={(e) => toggleTheme(e)}
           title={theme === 'dark' ? trans.theme.light : trans.theme.dark}
         >
           {theme === 'dark'
@@ -107,7 +104,7 @@ export default function TopBar() {
         </Button>
 
         {/* Notification Bell */}
-        <div className="relative" ref={notifRef}>
+        <div data-tour="notifications" className="relative" ref={notifRef}>
           <Button
             variant={notifOpen ? 'secondary' : 'outline'}
             size="icon"

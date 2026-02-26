@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { FileText, Download, Calendar, TrendingUp, BarChart3, PieChart, ArrowUpRight, Check, Loader2, FileDown } from 'lucide-react';
+import { FileText, Download, Calendar, TrendingUp, BarChart3, PieChart, ArrowUpRight, Check, Loader2, FileDown, Trash2, Power } from 'lucide-react';
 import { useLanguage } from '@/providers/LanguageProvider';
 import { toast } from 'sonner';
 import { generateReportPdf } from '@/lib/pdf';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
@@ -17,6 +19,17 @@ import {
 } from '@/components/ui/select';
 
 type ApiEndpoint = '/api/revenue' | '/api/risk-scores' | '/api/portfolio' | '/api/transactions';
+
+interface ScheduledReport {
+  id: string;
+  name: string;
+  frequency: string;
+  email: string;
+  reportType: string;
+  active: boolean;
+  nextRun: string | null;
+  createdAt: string;
+}
 
 const reportsData: {
   titleKey: string; descKey: string; date: string; type: string; size: string;
@@ -47,8 +60,8 @@ const typeBadgeStyle: Record<string, string> = {
 };
 
 const statsLabels = {
-  en: [{ label: 'Reports Generated', sub: 'This year' }, { label: 'Last Generated', sub: 'Q4 2024 Performance' }, { label: 'Scheduled', sub: 'Next 30 days' }],
-  tr: [{ label: 'Oluşturulan Rapor', sub: 'Bu yıl' }, { label: 'Son Oluşturulan', sub: 'Q4 2024 Performans' }, { label: 'Planlanmış', sub: 'Sonraki 30 gün' }],
+  en: [{ label: 'Reports Generated', sub: 'This year' }, { label: 'Last Generated', sub: 'Q4 2024 Performance' }, { label: 'Scheduled', sub: 'Active schedules' }],
+  tr: [{ label: 'Oluşturulan Rapor', sub: 'Bu yıl' }, { label: 'Son Oluşturulan', sub: 'Q4 2024 Performans' }, { label: 'Planlanmış', sub: 'Aktif zamanlamalar' }],
 };
 
 function jsonToCsv(data: Record<string, unknown>[]): string {
@@ -76,16 +89,31 @@ export default function ReportsPage() {
   const [schedName, setSchedName] = useState('');
   const [schedFreq, setSchedFreq] = useState('weekly');
   const [schedEmail, setSchedEmail] = useState('');
+  const [schedReportType, setSchedReportType] = useState('general');
+  const [scheduledReports, setScheduledReports] = useState<ScheduledReport[]>([]);
+  const [schedLoading, setSchedLoading] = useState(true);
+  const [schedSaving, setSchedSaving] = useState(false);
 
   const titles = reportTitles[lang];
   const descs = reportDescs[lang];
   const stats = statsLabels[lang];
 
-  const scheduledCount = (() => {
-    if (typeof window === 'undefined') return 0;
-    try { return (JSON.parse(localStorage.getItem('scheduled_reports') || '[]') as unknown[]).length; } catch { return 0; }
-  })();
-  const statsValues = ['148', 'Feb 1', String(3 + scheduledCount)];
+  const fetchSchedules = useCallback(async () => {
+    try {
+      const res = await fetch('/api/reports/schedule');
+      const json = await res.json();
+      setScheduledReports(json.data || []);
+    } catch {
+      // silent
+    } finally {
+      setSchedLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchSchedules(); }, [fetchSchedules]);
+
+  const activeCount = scheduledReports.filter((s) => s.active).length;
+  const statsValues = ['148', 'Feb 1', String(activeCount)];
 
   const handleDownload = async (i: number, format: 'csv' | 'pdf' = 'csv') => {
     const report = reportsData[i];
@@ -124,16 +152,66 @@ export default function ReportsPage() {
     }
   };
 
-  const handleSchedule = () => {
+  const handleSchedule = async () => {
     if (!schedName.trim() || !schedEmail.trim()) return;
-    const existing = JSON.parse(localStorage.getItem('scheduled_reports') || '[]');
-    existing.push({ name: schedName, frequency: schedFreq, email: schedEmail, createdAt: new Date().toISOString() });
-    localStorage.setItem('scheduled_reports', JSON.stringify(existing));
-    toast.success(trans.pages.reports.scheduleSuccess);
-    setScheduleOpen(false);
-    setSchedName('');
-    setSchedFreq('weekly');
-    setSchedEmail('');
+    setSchedSaving(true);
+    try {
+      const res = await fetch('/api/reports/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: schedName, frequency: schedFreq, email: schedEmail, reportType: schedReportType }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success(trans.pages.reports.scheduleSuccess);
+      setScheduleOpen(false);
+      setSchedName('');
+      setSchedFreq('weekly');
+      setSchedEmail('');
+      setSchedReportType('general');
+      fetchSchedules();
+    } catch {
+      toast.error(lang === 'tr' ? 'Planlama başarısız' : 'Scheduling failed');
+    } finally {
+      setSchedSaving(false);
+    }
+  };
+
+  const toggleScheduleActive = async (id: string, active: boolean) => {
+    try {
+      await fetch('/api/reports/schedule', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, active: !active }),
+      });
+      fetchSchedules();
+    } catch {
+      // silent
+    }
+  };
+
+  const deleteSchedule = async (id: string) => {
+    try {
+      await fetch(`/api/reports/schedule?id=${id}`, { method: 'DELETE' });
+      fetchSchedules();
+      toast.success(lang === 'tr' ? 'Zamanlama silindi' : 'Schedule deleted');
+    } catch {
+      // silent
+    }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    });
+  };
+
+  const freqLabel = (freq: string) => {
+    const map: Record<string, Record<string, string>> = {
+      en: { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' },
+      tr: { daily: 'Günlük', weekly: 'Haftalık', monthly: 'Aylık' },
+    };
+    return map[lang][freq] || freq;
   };
 
   return (
@@ -230,6 +308,80 @@ export default function ReportsPage() {
             ))}
           </div>
         </div>
+
+        {/* Scheduled Reports */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-semibold text-foreground">
+              {lang === 'tr' ? 'Planlanmış Raporlar' : 'Scheduled Reports'}
+            </h3>
+            <Badge variant="secondary" className="text-[10px]">
+              {activeCount} {lang === 'tr' ? 'aktif' : 'active'}
+            </Badge>
+          </div>
+
+          {schedLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ))}
+            </div>
+          ) : scheduledReports.length === 0 ? (
+            <div className="text-center py-8">
+              <Calendar size={28} className="text-muted-foreground mx-auto mb-2 opacity-40" />
+              <p className="text-xs text-muted-foreground">
+                {lang === 'tr' ? 'Henüz planlanmış rapor yok' : 'No scheduled reports yet'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-0">
+              {scheduledReports.map((schedule) => (
+                <div
+                  key={schedule.id}
+                  className="flex items-center gap-4 py-3 border-b border-border last:border-0 -mx-6 px-6"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${schedule.active ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
+                      {schedule.name}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {schedule.email}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] h-5">
+                    {freqLabel(schedule.frequency)}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground w-28 text-right">
+                    {lang === 'tr' ? 'Sonraki:' : 'Next:'} {formatDate(schedule.nextRun)}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => toggleScheduleActive(schedule.id, schedule.active)}
+                      title={schedule.active ? (lang === 'tr' ? 'Devre dışı bırak' : 'Disable') : (lang === 'tr' ? 'Etkinleştir' : 'Enable')}
+                    >
+                      <Power size={12} className={schedule.active ? 'text-emerald-400' : 'text-muted-foreground'} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteSchedule(schedule.id)}
+                    >
+                      <Trash2 size={12} />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Schedule Dialog */}
@@ -243,6 +395,18 @@ export default function ReportsPage() {
             <div className="space-y-2">
               <Label>{trans.pages.reports.reportName}</Label>
               <Input value={schedName} onChange={(e) => setSchedName(e.target.value)} placeholder="Q1 2025 Performance Report" />
+            </div>
+            <div className="space-y-2">
+              <Label>{lang === 'tr' ? 'Rapor Türü' : 'Report Type'}</Label>
+              <Select value={schedReportType} onValueChange={setSchedReportType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">{lang === 'tr' ? 'Genel' : 'General'}</SelectItem>
+                  <SelectItem value="performance">{lang === 'tr' ? 'Performans' : 'Performance'}</SelectItem>
+                  <SelectItem value="risk">{lang === 'tr' ? 'Risk' : 'Risk'}</SelectItem>
+                  <SelectItem value="compliance">{lang === 'tr' ? 'Uyumluluk' : 'Compliance'}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>{trans.pages.reports.frequency}</Label>
@@ -262,7 +426,10 @@ export default function ReportsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setScheduleOpen(false)}>{trans.profile.cancel}</Button>
-            <Button onClick={handleSchedule} disabled={!schedName.trim() || !schedEmail.trim()}>{trans.pages.reports.scheduleBtn}</Button>
+            <Button onClick={handleSchedule} disabled={!schedName.trim() || !schedEmail.trim() || schedSaving}>
+              {schedSaving ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+              {trans.pages.reports.scheduleBtn}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

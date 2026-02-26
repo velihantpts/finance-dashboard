@@ -29,7 +29,7 @@ import {
 
 interface NavItem {
   icon: ComponentType<{ size?: number; className?: string }>;
-  labelKey: 'dashboard' | 'analytics' | 'transactions' | 'reports' | 'riskManagement' | 'settings';
+  labelKey: 'dashboard' | 'analytics' | 'transactions' | 'reports' | 'riskManagement' | 'activity' | 'settings';
   href: string;
 }
 
@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { icon: Wallet, labelKey: 'transactions', href: '/transactions' },
   { icon: FileText, labelKey: 'reports', href: '/reports' },
   { icon: Shield, labelKey: 'riskManagement', href: '/risk' },
+  { icon: Activity, labelKey: 'activity', href: '/activity' },
   { icon: Settings, labelKey: 'settings', href: '/settings' },
 ];
 
@@ -62,6 +63,7 @@ export default function Sidebar() {
   return (
     <>
       <aside
+        data-tour="sidebar"
         className={`sidebar-transition fixed left-0 top-0 h-screen bg-background border-r border-border flex flex-col z-50 overflow-hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 transition-transform duration-300`}

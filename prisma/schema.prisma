@@ -8,16 +8,19 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String?
-  email     String    @unique
-  password  String
-  role      String    @default("analyst")
-  phone     String?
-  image     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  sessions  Session[]
+  id               String            @id @default(cuid())
+  name             String?
+  email            String            @unique
+  password         String
+  role             String            @default("analyst")
+  phone            String?
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  sessions         Session[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+  scheduledReports ScheduledReport[]
 }
 
 model Session {
@@ -70,4 +73,40 @@ model KpiMetric {
   value  String
   change String
   trend  String
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // alert, success, info, warning
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScheduledReport {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  frequency  String
+  email      String
+  reportType String
+  active     Boolean   @default(true)
+  lastRun    DateTime?
+  nextRun    DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
