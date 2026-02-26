@@ -9,6 +9,8 @@ import Breadcrumb from '@/components/ui/Breadcrumb';
 import TopProgressBar from '@/components/ui/TopProgressBar';
 import OnboardingTour from '@/components/ui/OnboardingTour';
 import CommandPalette from '@/components/ui/CommandPalette';
+import FloatingActions from '@/components/ui/FloatingActions';
+import CurrencyConverter from '@/components/ui/CurrencyConverter';
 import MobileBottomNav from '@/components/layout/MobileBottomNav';
 import { useSidebar } from '@/providers/SidebarProvider';
 import { useKeyboardShortcuts, SHORTCUT_LIST } from '@/hooks/useKeyboardShortcuts';
@@ -123,6 +125,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Command Palette */}
       <CommandPalette />
+
+      {/* Floating Quick Actions */}
+      <FloatingActions />
+
+      {/* Currency Converter */}
+      <CurrencyConverter />
 
       {/* Mobile Bottom Nav */}
       <MobileBottomNav />
