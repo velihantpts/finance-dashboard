@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import Breadcrumb from '@/components/ui/Breadcrumb';
+import TopProgressBar from '@/components/ui/TopProgressBar';
 import { useSidebar } from '@/providers/SidebarProvider';
 
 interface DashboardLayoutProps {
@@ -16,6 +17,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <TopProgressBar />
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="sidebar-overlay lg:hidden" onClick={() => setMobileOpen(false)} />

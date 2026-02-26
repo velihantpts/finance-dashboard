@@ -26,7 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         );
         if (!isValid) return null;
 
-        return { id: user.id, email: user.email, name: user.name, role: user.role };
+        return { id: user.id, email: user.email, name: user.name, role: user.role, image: user.image };
       },
     }),
   ],
@@ -34,13 +34,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: '/login' },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = (user as { role?: string }).role;
+      if (user) {
+        token.role = (user as { role?: string }).role;
+        token.image = (user as { image?: string }).image;
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as { role?: string }).role = token.role as string;
         (session.user as { id?: string }).id = token.sub as string;
+        (session.user as { image?: string | null }).image = (token.image as string) || null;
       }
       return session;
     },

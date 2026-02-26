@@ -7,11 +7,13 @@ import { Settings, Bell, Shield, Palette, Globe, Key, ChevronRight, ChevronDown,
 import { useLanguage } from '@/providers/LanguageProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useCurrency, type Currency } from '@/providers/CurrencyProvider';
+import { useProfile } from '@/hooks/useApi';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 const TOGGLES_KEY = 'settings_toggles';
@@ -32,6 +34,7 @@ export default function SettingsPage() {
   const { trans, lang, toggleLang } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { currency: activeCurrency, setCurrency: setGlobalCurrency } = useCurrency();
+  const { data: profile, loading: profileLoading, refetch: refetchProfile } = useProfile();
   const [profileOpen, setProfileOpen] = useState(false);
   const [toggles, setToggles] = useState<boolean[]>([true, true, false, true]);
   const [activeSection, setActiveSection] = useState<number | null>(null);
@@ -96,11 +99,17 @@ export default function SettingsPage() {
     { label: trans.pages.settings.twoFactor, sub: lang === 'tr' ? 'Hesabınız için ekstra güvenlik' : 'Extra security for your account' },
   ];
 
+  const formatMemberSince = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', year: 'numeric' });
+  };
+
   const accountDetails = [
     { label: lang === 'tr' ? 'Hesap Türü' : 'Account Type', value: 'Enterprise' },
     { label: lang === 'tr' ? 'Plan' : 'Plan', value: 'Pro Treasury' },
-    { label: lang === 'tr' ? 'Üyelik Tarihi' : 'Member Since', value: 'Jan 2023' },
-    { label: lang === 'tr' ? 'Son Giriş' : 'Last Login', value: lang === 'tr' ? '2 dk önce' : '2 min ago' },
+    { label: lang === 'tr' ? 'Üyelik Tarihi' : 'Member Since', value: formatMemberSince(profile?.createdAt) },
+    { label: lang === 'tr' ? 'Rol' : 'Role', value: profile?.role || '—' },
   ];
 
   const renderSectionContent = (index: number) => {
@@ -250,24 +259,36 @@ export default function SettingsPage() {
             <div className="lg:col-span-1 space-y-5">
               <div className="card">
                 <h3 className="text-sm font-semibold text-foreground mb-5">{trans.pages.settings.profile}</h3>
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold mb-3">
-                    VT
+                {profileLoading ? (
+                  <div className="flex flex-col items-center text-center">
+                    <Skeleton className="w-16 h-16 rounded-full mb-3" />
+                    <Skeleton className="h-4 w-24 mb-1.5" />
+                    <Skeleton className="h-3 w-20 mb-1" />
+                    <Skeleton className="h-3 w-32 mb-4" />
+                    <Skeleton className="h-8 w-full" />
                   </div>
-                  <p className="text-sm font-semibold text-foreground">Velihan T.</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {lang === 'tr' ? 'Yönetici' : 'Administrator'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">velihan@financehub.io</p>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="mt-4 w-full h-8 text-xs text-primary"
-                    onClick={() => setProfileOpen(true)}
-                  >
-                    {trans.profile.editProfile}
-                  </Button>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center text-center">
+                    {profile?.image ? (
+                      <img src={profile.image} alt="Avatar" className="w-16 h-16 rounded-full object-cover mb-3" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold mb-3">
+                        {profile?.name ? profile.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : '??'}
+                      </div>
+                    )}
+                    <p className="text-sm font-semibold text-foreground">{profile?.name || '—'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{profile?.role || '—'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{profile?.email || '—'}</p>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="mt-4 w-full h-8 text-xs text-primary"
+                      onClick={() => setProfileOpen(true)}
+                    >
+                      {trans.profile.editProfile}
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="card">
@@ -342,7 +363,7 @@ export default function SettingsPage() {
       </DashboardLayout>
 
       {profileOpen && (
-        <ProfileModal onClose={() => setProfileOpen(false)} />
+        <ProfileModal onClose={() => setProfileOpen(false)} onProfileUpdated={refetchProfile} />
       )}
     </>
   );
