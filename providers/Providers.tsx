@@ -6,6 +6,7 @@ import { ThemeProvider } from './ThemeProvider';
 import { LanguageProvider } from './LanguageProvider';
 import { SidebarProvider } from './SidebarProvider';
 import { CurrencyProvider } from './CurrencyProvider';
+import { LoadingProvider } from './LoadingProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import CommandPalette from '@/components/ui/CommandPalette';
@@ -16,13 +17,15 @@ export function Providers({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <LanguageProvider>
           <CurrencyProvider>
-            <SidebarProvider>
-              <TooltipProvider>
-                {children}
-                <CommandPalette />
-                <Toaster richColors position="bottom-right" />
-              </TooltipProvider>
-            </SidebarProvider>
+            <LoadingProvider>
+              <SidebarProvider>
+                <TooltipProvider>
+                  {children}
+                  <CommandPalette />
+                  <Toaster richColors position="bottom-right" />
+                </TooltipProvider>
+              </SidebarProvider>
+            </LoadingProvider>
           </CurrencyProvider>
         </LanguageProvider>
       </ThemeProvider>

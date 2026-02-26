@@ -52,6 +52,7 @@ export default function Sidebar() {
   const userName = session?.user?.name ?? 'Loading...';
   const userInitials = userName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
   const userRole = (session?.user as { role?: string })?.role ?? '';
+  const userImage = (session?.user as { image?: string | null })?.image ?? null;
 
   const handleLogout = () => {
     setLogoutOpen(false);
@@ -177,9 +178,13 @@ export default function Sidebar() {
               gap: collapsed ? 0 : 12,
             }}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-              {userInitials || 'VT'}
-            </div>
+            {userImage ? (
+              <img src={userImage} alt="Avatar" className="w-8 h-8 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {userInitials || 'VT'}
+              </div>
+            )}
             <div
               className="flex-1 min-w-0 overflow-hidden transition-all duration-300"
               style={{ width: collapsed ? 0 : 'auto', opacity: collapsed ? 0 : 1 }}
