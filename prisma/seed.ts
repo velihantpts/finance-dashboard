@@ -4,11 +4,11 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Seeding database...\n');
 
-  // ── Admin user ─────────────────────────────────────────────
+  // ── Users ─────────────────────────────────────────────────
   const hashed = await bcrypt.hash('Admin123!', 10);
-  await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: { email: 'admin@financehub.com' },
     update: {},
     create: {
@@ -18,9 +18,33 @@ async function main() {
       role: 'admin',
     },
   });
-  console.log('✅ Admin user created');
 
-  // ── KPI Metrics ────────────────────────────────────────────
+  const analystPw = await bcrypt.hash('Analyst123!', 10);
+  const analyst = await prisma.user.upsert({
+    where: { email: 'analyst@financehub.com' },
+    update: {},
+    create: {
+      name: 'Sarah Johnson',
+      email: 'analyst@financehub.com',
+      password: analystPw,
+      role: 'analyst',
+    },
+  });
+
+  const viewerPw = await bcrypt.hash('Viewer123!', 10);
+  await prisma.user.upsert({
+    where: { email: 'viewer@financehub.com' },
+    update: {},
+    create: {
+      name: 'Mike Chen',
+      email: 'viewer@financehub.com',
+      password: viewerPw,
+      role: 'viewer',
+    },
+  });
+  console.log('✅ Users created (admin, analyst, viewer)');
+
+  // ── KPI Metrics ──────────────────────────────────────────
   const kpiData = [
     { key: 'total_aum',     value: '$847.2M', change: '+12.5%', trend: 'up' },
     { key: 'net_revenue',   value: '$4.15M',  change: '+8.3%',  trend: 'up' },
@@ -32,7 +56,7 @@ async function main() {
   }
   console.log('✅ KPI metrics seeded');
 
-  // ── Revenue ────────────────────────────────────────────────
+  // ── Revenue ──────────────────────────────────────────────
   const revenueData = [
     { month: 'Jan', revenue: 186000, expenses: 120000, profit: 66000 },
     { month: 'Feb', revenue: 205000, expenses: 135000, profit: 70000 },
@@ -52,7 +76,7 @@ async function main() {
   }
   console.log('✅ Revenue data seeded');
 
-  // ── Portfolio Allocations ──────────────────────────────────
+  // ── Portfolio Allocations ────────────────────────────────
   const portfolioData = [
     { name: 'Equities',     value: 42, color: '#6366f1' },
     { name: 'Fixed Income', value: 28, color: '#22d3ee' },
@@ -65,7 +89,7 @@ async function main() {
   }
   console.log('✅ Portfolio data seeded');
 
-  // ── Risk Scores ────────────────────────────────────────────
+  // ── Risk Scores ──────────────────────────────────────────
   const riskData = [
     { category: 'Market Risk',  score: 72, previous: 68 },
     { category: 'Credit Risk',  score: 45, previous: 52 },
@@ -78,22 +102,81 @@ async function main() {
   }
   console.log('✅ Risk scores seeded');
 
-  // ── Transactions ───────────────────────────────────────────
-  const txns = [
-    { txnId: 'TXN-7842', client: 'Goldman Capital',   type: 'Buy',  asset: 'US Treasury 10Y',   amount: 2500000, status: 'Completed', risk: 'Low',    date: new Date('2025-02-20') },
-    { txnId: 'TXN-7841', client: 'Meridian Fund',     type: 'Sell', asset: 'EUR/USD FX Swap',    amount: 1800000, status: 'Pending',   risk: 'Medium', date: new Date('2025-02-20') },
-    { txnId: 'TXN-7840', client: 'Atlas Investments', type: 'Buy',  asset: 'Corporate Bond AAA', amount: 5200000, status: 'Completed', risk: 'Low',    date: new Date('2025-02-19') },
-    { txnId: 'TXN-7839', client: 'Vertex Holdings',   type: 'Sell', asset: 'S&P 500 ETF',        amount: 890000,  status: 'Failed',    risk: 'High',   date: new Date('2025-02-19') },
-    { txnId: 'TXN-7838', client: 'Pinnacle Group',    type: 'Buy',  asset: 'Gold Futures',       amount: 3100000, status: 'Completed', risk: 'Medium', date: new Date('2025-02-18') },
-    { txnId: 'TXN-7837', client: 'Summit Capital',    type: 'Buy',  asset: 'JPY/USD Forward',    amount: 4200000, status: 'Pending',   risk: 'Low',    date: new Date('2025-02-18') },
-    { txnId: 'TXN-7836', client: 'Horizon Wealth',    type: 'Sell', asset: 'BIST 100 Index',     amount: 720000,  status: 'Completed', risk: 'High',   date: new Date('2025-02-17') },
-  ];
+  // ── Transactions (50 realistic entries) ──────────────────
+  const clients = ['Goldman Capital', 'Meridian Fund', 'Atlas Investments', 'Vertex Holdings', 'Pinnacle Group', 'Summit Capital', 'Horizon Wealth', 'Blackrock Partners', 'Vanguard Trust', 'Citadel Securities'];
+  const assets = ['US Treasury 10Y', 'EUR/USD FX Swap', 'Corporate Bond AAA', 'S&P 500 ETF', 'Gold Futures', 'JPY/USD Forward', 'BIST 100 Index', 'BTC/USD', 'Crude Oil WTI', 'Silver Futures', 'German Bund 5Y', 'MSCI Emerging'];
+  const types = ['Buy', 'Sell'];
+  const statuses = ['Completed', 'Pending', 'Failed'];
+  const risksArr = ['Low', 'Medium', 'High'];
+
+  const txns = [];
+  for (let i = 0; i < 50; i++) {
+    const daysAgo = Math.floor(Math.random() * 60);
+    txns.push({
+      txnId: `TXN-${7842 - i}`,
+      client: clients[Math.floor(Math.random() * clients.length)],
+      type: types[Math.floor(Math.random() * types.length)],
+      asset: assets[Math.floor(Math.random() * assets.length)],
+      amount: Math.floor(Math.random() * 9000000 + 100000),
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      risk: risksArr[Math.floor(Math.random() * risksArr.length)],
+      date: new Date(Date.now() - daysAgo * 86400000),
+    });
+  }
   for (const t of txns) {
     await prisma.transaction.upsert({ where: { txnId: t.txnId }, update: t, create: t });
   }
-  console.log('✅ Transactions seeded');
+  console.log('✅ 50 transactions seeded');
 
-  console.log('🎉 Database seeded successfully!');
+  // ── Notifications ────────────────────────────────────────
+  const notifData = [
+    { userId: admin.id, type: 'alert', title: 'Market Risk Threshold Exceeded', message: 'Market Risk score reached 72, exceeding the limit of 70.' },
+    { userId: admin.id, type: 'success', title: 'Transaction Completed', message: 'TXN-7842 Goldman Capital Buy $2.5M completed successfully.' },
+    { userId: admin.id, type: 'warning', title: 'Liquidity Risk Elevated', message: 'Liquidity Risk approaching warning level at 58.', read: true },
+    { userId: admin.id, type: 'info', title: 'Monthly Report Ready', message: 'Q4 2024 Performance Report is available for download.', read: true },
+    { userId: admin.id, type: 'success', title: 'Compliance Check Passed', message: 'All compliance requirements met for this period.', read: true },
+    { userId: analyst.id, type: 'info', title: 'New Assignment', message: 'You have been assigned to review Q1 risk assessment.' },
+    { userId: analyst.id, type: 'alert', title: 'Failed Transaction Alert', message: 'TXN-7839 Vertex Holdings failed — requires investigation.' },
+  ];
+  await prisma.notification.deleteMany({});
+  for (const n of notifData) {
+    await prisma.notification.create({ data: n });
+  }
+  console.log('✅ Notifications seeded');
+
+  // ── Audit Logs ───────────────────────────────────────────
+  const auditData = [
+    { userId: admin.id, action: 'LOGIN', entity: 'session', details: 'Logged in from 192.168.1.100' },
+    { userId: admin.id, action: 'CREATE', entity: 'transaction', entityId: 'TXN-7842', details: 'Created Buy order $2.5M' },
+    { userId: admin.id, action: 'UPDATE', entity: 'profile', details: 'Updated profile information' },
+    { userId: analyst.id, action: 'LOGIN', entity: 'session', details: 'Logged in from 10.0.0.55' },
+    { userId: analyst.id, action: 'VIEW', entity: 'report', details: 'Viewed Q4 Performance Report' },
+    { userId: admin.id, action: 'EXPORT', entity: 'transactions', details: 'Exported 50 transactions as CSV' },
+    { userId: admin.id, action: 'UPDATE', entity: 'risk-score', entityId: 'Market Risk', details: 'Risk score updated from 68 to 72' },
+  ];
+  await prisma.auditLog.deleteMany({});
+  for (const a of auditData) {
+    await prisma.auditLog.create({ data: a });
+  }
+  console.log('✅ Audit logs seeded');
+
+  // ── Scheduled Reports ────────────────────────────────────
+  const schedData = [
+    { userId: admin.id, name: 'Weekly Risk Summary', frequency: 'weekly', email: 'admin@financehub.com', reportType: 'risk', active: true, nextRun: new Date(Date.now() + 7 * 86400000) },
+    { userId: admin.id, name: 'Monthly Performance Report', frequency: 'monthly', email: 'admin@financehub.com', reportType: 'performance', active: true, nextRun: new Date(Date.now() + 30 * 86400000) },
+    { userId: analyst.id, name: 'Daily Transaction Digest', frequency: 'daily', email: 'analyst@financehub.com', reportType: 'general', active: false, nextRun: new Date(Date.now() + 86400000) },
+  ];
+  await prisma.scheduledReport.deleteMany({});
+  for (const s of schedData) {
+    await prisma.scheduledReport.create({ data: s });
+  }
+  console.log('✅ Scheduled reports seeded');
+
+  console.log('\n🎉 Database seeded successfully!');
+  console.log('\n📋 Login credentials:');
+  console.log('   Admin:   admin@financehub.com   / Admin123!');
+  console.log('   Analyst: analyst@financehub.com / Analyst123!');
+  console.log('   Viewer:  viewer@financehub.com  / Viewer123!');
 }
 
 main()

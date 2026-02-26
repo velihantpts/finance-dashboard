@@ -1,177 +1,165 @@
-# FinanceHub — Enterprise Treasury Dashboard
+# FinanceHub — Treasury Dashboard
 
-A production-grade treasury management dashboard built with Next.js 16, TypeScript, and Tailwind CSS v4. Features real-time KPI monitoring, interactive charts, transaction management, risk assessment, and full EN/TR bilingual support with dark/light theme switching.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma)](https://prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)](https://postgresql.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
----
+A full-featured **enterprise treasury management dashboard** built with modern web technologies. Real-time financial analytics, risk management, transaction processing, and team collaboration — all in a polished, production-ready interface.
 
 ## Features
 
-- **6 fully routed pages** — Dashboard, Analytics, Transactions, Reports, Risk Management, Settings
-- **Collapsible sidebar** — smooth 240px ↔ 64px transition, state persisted to `localStorage`
-- **Dark / Light mode** — one-click toggle, persisted to `localStorage`
-- **EN / TR language support** — full bilingual UI, persisted to `localStorage`
-- **Interactive charts** — Area, Bar, and Pie charts via Recharts with period selectors (1M / 3M / 6M / 1Y)
-- **Transaction table** — real-time search, multi-filter panel (Status / Risk / Type), export feedback
-- **Notification panel** — per-item dismiss, mark-all-read, unread count badge
-- **Profile modal** — edit name, email, role, phone with save confirmation
-- **Interactive settings** — live toggle switches, preference sections
-- **Zero TypeScript errors** — strict mode, no `any` types
+### Core
+- **KPI Dashboard** — Real-time AUM, revenue, clients, and transaction metrics with animated counters
+- **Interactive Charts** — Revenue trends, portfolio allocation (pie + treemap), risk assessment, profit analysis, heatmap, funnel
+- **Transaction Management** — CRUD operations, search, filter, pagination, CSV/PDF export
+- **Risk Management** — Risk scores, category breakdown, trend analysis
+- **Reports** — Scheduled reports with DB-backed CRUD, CSV and PDF export
 
----
+### Technical Highlights
+- **Authentication** — NextAuth v5 with JWT strategy, role-based access (admin/analyst/viewer)
+- **RBAC** — Permission-based authorization with `RoleGate` component
+- **Real-time Notifications** — Server-Sent Events (SSE) with auto-reconnect
+- **AI Insights** — Rule-based financial analysis engine (no external API dependency)
+- **Audit Log** — Activity tracking with timeline view
+- **Command Palette** — Ctrl+K spotlight search with keyboard navigation
+- **Keyboard Shortcuts** — Chord-based navigation (G→D, G→A, etc.)
+- **Onboarding Tour** — Interactive 7-step tour with spotlight overlay for first-time users
+- **Drag & Drop** — Reorderable dashboard sections with `@dnd-kit`
+- **Theme System** — Dark/Light with circular reveal animation (View Transition API)
+- **i18n** — Full English/Turkish support
+- **PWA** — Installable progressive web app with manifest
+- **Page Transitions** — Smooth animated route transitions with Framer Motion
+- **Mobile Responsive** — Bottom navigation bar, responsive layouts
+- **Rate Limiting** — In-memory API rate limiter
+- **Error Boundaries** — Custom error and 404 pages with auto-retry
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|------------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript 5 — strict mode |
-| Styling | Tailwind CSS v4 — CSS custom properties for theming |
-| Charts | Recharts 3 |
-| Icons | Lucide React |
-| State | React Context API (Sidebar · Theme · Language) |
-| Runtime | React 19 |
-
----
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| UI | React 19, Tailwind CSS 4, shadcn/ui |
+| Animation | Framer Motion |
+| Charts | Recharts |
+| Database | PostgreSQL (Neon) |
+| ORM | Prisma 5 |
+| Auth | NextAuth v5 (Credentials) |
+| Drag & Drop | @dnd-kit |
+| PDF | jsPDF + jsPDF-AutoTable |
+| Testing | Playwright (E2E) |
+| CI/CD | GitHub Actions |
+| Container | Docker + docker-compose |
 
 ## Getting Started
 
 ### Prerequisites
+- Node.js 20+
+- PostgreSQL database (or use Docker)
 
-- Node.js 18+
-
-### Install & run
+### Quick Start
 
 ```bash
+# Clone the repo
+git clone https://github.com/your-username/finance-dashboard.git
+cd finance-dashboard
+
+# Install dependencies
 npm install
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your DATABASE_URL and NEXTAUTH_SECRET
+
+# Push schema and seed database
+npx prisma db push
+npx prisma db seed
+
+# Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### Build
+### Docker
 
 ```bash
-npm run build
-npm start
+# Start everything (PostgreSQL + App)
+docker-compose up -d
+
+# Run migrations
+docker-compose exec app npx prisma db push
+docker-compose exec app npx prisma db seed
 ```
 
----
+### Login Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@financehub.com | Admin123! |
+| Analyst | analyst@financehub.com | Analyst123! |
+| Viewer | viewer@financehub.com | Viewer123! |
 
 ## Project Structure
 
 ```
-finance-dashboard/
-├── app/
-│   ├── global.css            # CSS variables, .card base, theme overrides
-│   ├── layout.tsx            # Root layout — wraps with <Providers>
-│   ├── page.tsx              # Dashboard (home)
-│   ├── analytics/page.tsx
-│   ├── transactions/page.tsx
-│   ├── reports/page.tsx
-│   ├── risk/page.tsx
-│   └── settings/page.tsx
-│
+├── app/                    # Next.js App Router pages
+│   ├── api/                # API routes (REST)
+│   │   ├── analytics/      # Analytics aggregation
+│   │   ├── audit-log/      # Audit log entries
+│   │   ├── insights/       # AI-powered insights
+│   │   ├── notifications/  # CRUD + SSE stream
+│   │   ├── profile/        # Profile + avatar upload
+│   │   ├── reports/        # Scheduled reports CRUD
+│   │   └── transactions/   # Transaction CRUD
+│   ├── analytics/          # Analytics page
+│   ├── activity/           # Activity log page
+│   ├── reports/            # Reports page
+│   ├── risk/               # Risk management page
+│   ├── settings/           # Settings page
+│   └── transactions/       # Transactions page
 ├── components/
-│   ├── layout/
-│   │   ├── DashboardLayout.tsx   # Wrapper — sidebar + topbar + children
-│   │   ├── Sidebar.tsx           # Collapsible nav with tooltips
-│   │   └── TopBar.tsx            # Theme · Language · Notification controls
-│   ├── cards/
-│   │   ├── KpiCard.tsx           # Single KPI metric card
-│   │   ├── KpiGrid.tsx           # 4-column KPI grid
-│   │   └── QuickStats.tsx        # Compact stat list
-│   ├── charts/
-│   │   ├── RevenueChart.tsx      # Area — revenue vs expenses
-│   │   ├── PortfolioChart.tsx    # Donut — asset allocation
-│   │   ├── ProfitChart.tsx       # Bar — monthly profit
-│   │   ├── WeeklyVolume.tsx      # Mini bar — weekly volume
-│   │   └── CustomTooltip.tsx     # Shared chart tooltip
-│   ├── tables/
-│   │   ├── TransactionTable.tsx  # Searchable, filterable table
-│   │   ├── StatusBadge.tsx
-│   │   └── RiskBadge.tsx
-│   ├── risk/
-│   │   └── RiskAssessment.tsx    # Risk score progress bars
-│   └── ui/
-│       ├── SectionHeader.tsx     # Card header (title + subtitle + action slot)
-│       ├── PeriodSelector.tsx    # Period toggle buttons
-│       ├── NotificationPanel.tsx # Notification dropdown
-│       ├── ProfileModal.tsx      # Edit profile modal
-│       └── LogoutModal.tsx       # Sign-out confirmation
-│
-├── providers/
-│   ├── Providers.tsx             # Combined provider tree
-│   ├── SidebarProvider.tsx       # collapsed ↔ expanded state
-│   ├── ThemeProvider.tsx         # dark / light — toggles html.light
-│   └── LanguageProvider.tsx      # en / tr — translation lookup
-│
-├── lib/
-│   ├── translations.ts           # Full EN/TR strings (as const)
-│   └── utils.ts                  # formatCurrency, formatDate
-│
-├── data/
-│   └── mockData.ts               # Typed mock data for all components
-│
-└── types/
-    └── index.ts                  # Shared TypeScript interfaces
+│   ├── cards/              # KPI, Quick Stats, AI Insights
+│   ├── charts/             # Revenue, Portfolio, Treemap, Heatmap, Funnel
+│   ├── layout/             # DashboardLayout, Sidebar, TopBar, MobileBottomNav
+│   ├── risk/               # Risk assessment components
+│   ├── tables/             # Transaction table
+│   └── ui/                 # shadcn/ui + CommandPalette, OnboardingTour, etc.
+├── hooks/                  # Custom React hooks
+├── lib/                    # Utilities (prisma, rbac, audit, rate-limit, pdf)
+├── providers/              # React context providers
+├── prisma/                 # Schema + seed script
+├── e2e/                    # Playwright E2E tests
+└── public/                 # Static assets + PWA manifest
 ```
 
----
+## Keyboard Shortcuts
 
-## Theming
-
-Colors are defined as CSS custom properties in `app/global.css`. Dark mode is the default. Light mode applies when `html.light` is set on the document element.
-
-```css
-/* Dark (default) */
---bg-primary:    #0d0e14;
---bg-secondary:  #13151f;
---text-primary:  #e8eaf6;
---text-secondary:#9aa5ce;
---text-muted:    #4a5280;
---accent:        #6366f1;
-
-/* Light override (html.light) */
---bg-primary:    #f4f5fb;
---bg-secondary:  #ffffff;
---text-primary:  #0d0e14;
---text-secondary:#3a3e55;
---text-muted:    #7880a2;
-```
-
----
-
-## Internationalization
-
-Language state lives in `LanguageProvider`. All strings are defined in `lib/translations.ts`.
-
-```ts
-import { useLanguage } from '@/providers/LanguageProvider';
-
-export default function MyComponent() {
-  const { trans, lang } = useLanguage();
-  return <p>{trans.nav.dashboard}</p>;
-}
-```
-
-To add a new page:
-
-1. Create `app/your-page/page.tsx` and wrap with `<DashboardLayout>`
-2. Add a nav entry in `components/layout/Sidebar.tsx`
-3. Add translation keys in `lib/translations.ts` under `nav` and `pages`
-
----
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+K` | Command Palette |
+| `G → D` | Go to Dashboard |
+| `G → A` | Go to Analytics |
+| `G → T` | Go to Transactions |
+| `G → R` | Go to Reports |
+| `G → M` | Go to Risk Management |
+| `G → S` | Go to Settings |
+| `G → L` | Go to Activity Log |
+| `?` | Keyboard Shortcuts Help |
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server with Turbopack |
-| `npm run build` | Production build |
-| `npm start` | Start production server |
-| `npm run lint` | Run ESLint |
-
----
+```bash
+npm run dev        # Start development server
+npm run build      # Production build
+npm run start      # Start production server
+npm run lint       # ESLint check
+npx prisma studio  # Open Prisma Studio (DB GUI)
+npx prisma db seed # Seed database with demo data
+npx playwright test # Run E2E tests
+```
 
 ## License
 
